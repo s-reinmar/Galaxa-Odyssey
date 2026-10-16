@@ -8,6 +8,7 @@
 node_modules
 
 # Logs
+dist
 logs
 *.log
 # OS generated files
