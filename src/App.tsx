@@ -197,7 +197,21 @@ export const App: React.FC = () => {
                 forceUpdate();
               }}
             />
-            <TouchControls engine={engine} onStateUpdate={forceUpdate} />
+            <TouchControls
+              isPlaying={engine.gameState === GameState.PLAYING}
+              unlockedWeaponModes={engine.player1.unlockedWeaponModes}
+              currentWeaponMode={engine.player1.weaponMode}
+              isTwoPlayer={engine.twoPlayerMode}
+              onActionChange={(action, isPressed) => engine.inputManager.setVirtualButton(1, action, isPressed)}
+              onWeaponModeChange={(mode) => {
+                engine.setWeaponMode(mode);
+                forceUpdate();
+              }}
+              onPause={() => {
+                engine.pauseGame();
+                forceUpdate();
+              }}
+            />
           </>
         )}
 
