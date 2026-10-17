@@ -26,3 +26,9 @@ export interface GameInputActions {
  * Identyfikator wirtualnych przycisków / akcji dotykowych
  */
 export type VirtualButtonAction = 'left' | 'right' | 'up' | 'down' | 'fire' | 'roll';
+
+/** Lokalny gracz, którego dotyczy wejście. */
+export type PlayerSlot = 1 | 2;
+
+/** Znormalizowana intencja gracza — do niej sprowadzane jest wejście z każdego urządzenia. */
+export type PlayerIntent = PlayerInputState;

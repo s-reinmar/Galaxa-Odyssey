@@ -1,6 +1,6 @@
 import { WeaponMode } from '../../types/game';
 import { PlayerEntityService, PlayerState } from '../entities/GameEntities';
-import { InputManager } from '../input/InputManager';
+import type { IPlayerIntentProvider } from '../input/IInputSource';
 
 export interface IPlayerControlContext {
     player1: PlayerState;
@@ -16,7 +16,7 @@ export interface IPlayerControlContext {
 
 /** Ruch, efekty i auto-ogień graczy w pojedynczej klatce. */
 export class PlayerController {
-    constructor(private readonly input: InputManager) {}
+    constructor(private readonly input: IPlayerIntentProvider) {}
 
     public update(ctx: IPlayerControlContext): void {
         this.updatePlayer1(ctx);
@@ -25,17 +25,12 @@ export class PlayerController {
 
     private updatePlayer1(ctx: IPlayerControlContext): void {
         const p1 = ctx.player1;
-        PlayerEntityService.updateMovement(
-            p1,
-            this.input.isP1MovingLeft(),
-            this.input.isP1MovingRight(),
-            this.input.isP1MovingUp(),
-            this.input.isP1MovingDown()
-        );
+        const intent = this.input.getIntent(1);
+        PlayerEntityService.updateMovement(p1, intent.moveX < 0, intent.moveX > 0, intent.moveY > 0, intent.moveY < 0);
         PlayerEntityService.updateEffectsAndEnergy(p1, true);
 
         if (ctx.fireCooldown > 0) ctx.fireCooldown--;
-        const isFiring = this.input.isP1Firing() || ctx.spaceHeld;
+        const isFiring = intent.fire || ctx.spaceHeld;
         if (isFiring && p1.lives > 0) {
             if (p1.weaponMode === WeaponMode.LASER_BEAM || ctx.fireCooldown === 0) {
                 ctx.firePlayer1();
@@ -49,17 +44,12 @@ export class PlayerController {
         const p2 = ctx.player2;
         if (!ctx.twoPlayerMode || !p2 || p2.lives <= 0) return;
 
-        PlayerEntityService.updateMovement(
-            p2,
-            this.input.isP2MovingLeft(),
-            this.input.isP2MovingRight(),
-            this.input.isP2MovingUp(),
-            this.input.isP2MovingDown()
-        );
+        const intent = this.input.getIntent(2);
+        PlayerEntityService.updateMovement(p2, intent.moveX < 0, intent.moveX > 0, intent.moveY > 0, intent.moveY < 0);
         PlayerEntityService.updateEffectsAndEnergy(p2, false);
 
         if (ctx.secondPlayerFireCooldown > 0) ctx.secondPlayerFireCooldown--;
-        const isFiring = this.input.isP2Firing() || ctx.secondPlayerFireHeld;
+        const isFiring = intent.fire || ctx.secondPlayerFireHeld;
         if (isFiring && ctx.secondPlayerFireCooldown === 0) {
             ctx.firePlayer2();
         }
