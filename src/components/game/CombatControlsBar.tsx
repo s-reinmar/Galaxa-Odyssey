@@ -1,6 +1,6 @@
 import React from 'react';
 import { Camera, Maximize2, Minimize2, Radar } from 'lucide-react';
-import type { CameraViewMode } from '../3d/SpaceCombat3DScene';
+import type { CameraViewMode } from '../../rendering/three/combatSceneTypes';
 
 interface CombatControlsBarProps {
     viewMode: CameraViewMode;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SpaceHangarScene } from '../3d/SpaceHangarScene';
+import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
 import { soundEngine } from '../../game/audio/soundEngine';
 import { INTRO_SEEN_STORAGE_KEY, MenuTab, TAB_CAMERA_PRESET } from './menuTypes';
 

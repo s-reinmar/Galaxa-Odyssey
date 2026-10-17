@@ -2,7 +2,7 @@ import { MutableRefObject, useCallback, useState } from 'react';
 import { GameEngine } from '../../game/GameEngine';
 import { DifficultyLevel } from '../../types/game';
 import { soundEngine } from '../../game/audio/soundEngine';
-import { SpaceHangarScene } from '../3d/SpaceHangarScene';
+import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
 
 interface UseMissionLaunchParams {
   engine: GameEngine;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { DifficultyLevel } from '../types/game';
-import { SpaceCinematicIntroOverlay } from './3d/SpaceCinematicIntroOverlay';
+import { SpaceCinematicIntroOverlay } from './menu/SpaceCinematicIntroOverlay';
 import { soundEngine } from '../game/audio/soundEngine';
 import { MenuTab } from './menu/menuTypes';
 import { useHangarScene } from './menu/useHangarScene';

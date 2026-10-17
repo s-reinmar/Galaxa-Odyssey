@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { SpaceCombat3DScene } from '../components/3d/SpaceCombat3DScene';
-import { ShipSkinId } from '../components/3d/SpaceHangarScene';
+import { SpaceCombat3DScene } from '../rendering/three/SpaceCombat3DScene';
+import type { ShipSkinId } from '../config/visuals/hangarVisuals';
 
 /** Owns the lifecycle of the Three.js combat scene attached to the returned container ref. */
 export function useCombatScene(selectedSkin: ShipSkinId) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { TargetLockAudio } from '../components/3d/combatSceneTypes';
+import type { TargetLockAudio } from '../rendering/three/combatSceneTypes';
 
 export type LockState = 'SEARCHING' | 'ACQUIRING' | 'LOCKED';
 

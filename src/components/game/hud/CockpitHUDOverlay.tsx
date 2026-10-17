@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Zap, Crosshair, AlertTriangle } from 'lucide-react';
-import { WeaponMode, WEAPON_MODE_CONFIGS } from '../../types/game';
+import { WeaponMode, WEAPON_MODE_CONFIGS } from '../../../types/game';
 
 interface CockpitHUDOverlayProps {
   shield: number;

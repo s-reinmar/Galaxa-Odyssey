@@ -2,7 +2,8 @@ import React from 'react';
 import { Shield, Palette } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
 import { UpgradeOption, UPGRADE_CONFIGS } from '../../types/game';
-import { SHIP_SKINS, ShipSkinId } from '../3d/SpaceHangarScene';
+import { SHIP_SKINS } from '../../config/visuals/hangarVisuals';
+import type { ShipSkinId } from '../../config/visuals/hangarVisuals';
 import { soundEngine } from '../../game/audio/soundEngine';
 import { MenuPanelHeader, ReturnToBridgeButton } from './MenuPanel';
 

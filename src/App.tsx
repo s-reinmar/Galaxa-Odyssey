@@ -7,7 +7,7 @@ import { AchievementsOverlay } from './components/AchievementsOverlay';
 import { AchievementToast } from './components/AchievementToast';
 import { soundEngine } from './game/audio/soundEngine';
 import { GameState } from './types/game';
-import { ShipSkinId } from './components/3d/SpaceHangarScene';
+import type { ShipSkinId } from './config/visuals/hangarVisuals';
 import { AppHeader } from './components/AppHeader';
 import { AppFooter } from './components/AppFooter';
 import { useFullscreenManager } from './hooks/useFullscreenManager';

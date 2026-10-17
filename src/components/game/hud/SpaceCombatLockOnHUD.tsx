@@ -1,7 +1,7 @@
 import React from 'react';
-import type { ProjectedTarget, TargetLockAudio } from './combatSceneTypes';
-import { EnemyType } from '../../types/game';
-import { useTargetLock } from '../../hooks/useTargetLock';
+import type { ProjectedTarget, TargetLockAudio } from '../../../rendering/three/combatSceneTypes';
+import { EnemyType } from '../../../types/game';
+import { useTargetLock } from '../../../hooks/useTargetLock';
 import {
   Target,
   Zap,

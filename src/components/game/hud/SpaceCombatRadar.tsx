@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import type { ProjectedTarget } from './combatSceneTypes';
-import { EnemyType } from '../../types/game';
+import type { ProjectedTarget } from '../../../rendering/three/combatSceneTypes';
+import { EnemyType } from '../../../types/game';
 import { Radar, AlertTriangle, Crosshair, ShieldAlert } from 'lucide-react';
 
 interface SpaceCombatRadarProps {

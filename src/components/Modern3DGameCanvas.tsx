@@ -1,10 +1,10 @@
 ﻿import React from 'react';
 import type { GameEngine } from '../game/GameEngine';
-import { SpaceCombatRadar } from './3d/SpaceCombatRadar';
-import { SpaceCombatLockOnHUD } from './3d/SpaceCombatLockOnHUD';
+import { SpaceCombatRadar } from './game/hud/SpaceCombatRadar';
+import { SpaceCombatLockOnHUD } from './game/hud/SpaceCombatLockOnHUD';
 import { GameState } from '../types/game';
-import type { ShipSkinId } from './3d/SpaceHangarScene';
-import { CockpitHUDOverlay } from './3d/CockpitHUDOverlay';
+import type { ShipSkinId } from '../config/visuals/hangarVisuals';
+import { CockpitHUDOverlay } from './game/hud/CockpitHUDOverlay';
 import { ShieldPanel } from './game/ShieldPanel';
 import { WeaponCapacitorPanel } from './game/WeaponCapacitorPanel';
 import { WeaponSelector } from './game/WeaponSelector';

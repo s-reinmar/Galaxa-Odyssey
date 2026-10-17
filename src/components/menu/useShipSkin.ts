@@ -1,7 +1,8 @@
 import { MutableRefObject, useCallback, useState } from 'react';
 import { GameEngine } from '../../game/GameEngine';
 import { soundEngine } from '../../game/audio/soundEngine';
-import { ShipSkinId, SpaceHangarScene } from '../3d/SpaceHangarScene';
+import type { ShipSkinId } from '../../config/visuals/hangarVisuals';
+import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
 import { SHIP_SKIN_STORAGE_KEY } from './menuTypes';
 
 export function useShipSkin(

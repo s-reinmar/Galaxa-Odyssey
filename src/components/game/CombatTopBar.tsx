@@ -1,6 +1,6 @@
 import React from 'react';
 import { Camera, Flame, Radio } from 'lucide-react';
-import type { CameraViewMode } from '../3d/SpaceCombat3DScene';
+import type { CameraViewMode } from '../../rendering/three/combatSceneTypes';
 
 interface CombatTopBarProps {
     wave: number;
