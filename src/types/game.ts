@@ -135,3 +135,44 @@ export interface GameSaveData {
     highScore: number;
     profileScore: number;
 }
+
+/**
+ * Niemutowalny wycinek stanu gry udostępniany dla warstwy UI (React).
+ * Single Source of Truth dla HUD-a, menu i nakładek.
+ */
+export interface GameEngineSnapshot {
+    gameState: GameState;
+    wave: number;
+    credits: number;
+    twoPlayerMode: boolean;
+    difficulty: DifficultyLevel;
+    soundEnabled: boolean;
+    particlesEnabled: boolean;
+    isAchievementsOpen: boolean;
+    highScore: number;
+    profileScore: number;
+    player1: {
+        lives: number;
+        shield: number;
+        shieldLag: number;
+        score: number;
+        weaponLevel: number;
+        weaponMode: WeaponMode;
+        weaponEnergy: number;
+        unlockedWeaponModes: WeaponMode[];
+        damageFlash: number;
+        hitNotice?: string;
+    };
+    player2?: {
+        lives: number;
+        shield: number;
+        shieldLag: number;
+        score: number;
+        weaponLevel: number;
+        weaponMode: WeaponMode;
+        weaponEnergy: number;
+        unlockedWeaponModes: WeaponMode[];
+        damageFlash: number;
+        hitNotice?: string;
+    };
+}

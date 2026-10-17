@@ -3,7 +3,42 @@ import { GameEngine } from './GameEngine';
 import { GameState, WeaponMode, DifficultyLevel } from '../types/game';
 import { MAX_SHIELD, MAX_WEAPON_ENERGY } from './constants';
 
-// Mock audio, aby testy silnika nie zależały od Web Audio API
+// 1. Mock localStorage
+const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+    return {
+        getItem: vi.fn((key: string) => store[key] || null),
+        setItem: vi.fn((key: string, value: string) => {
+            store[key] = value.toString();
+        }),
+        removeItem: vi.fn((key: string) => {
+            delete store[key];
+        }),
+        clear: vi.fn(() => {
+            store = {};
+        }),
+    };
+})();
+
+Object.defineProperty(globalThis, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+});
+
+// 2. Mock pełnego window z addEventListener i timerami
+const windowMock = {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    setTimeout: globalThis.setTimeout.bind(globalThis),
+    clearTimeout: globalThis.clearTimeout.bind(globalThis),
+};
+
+Object.defineProperty(globalThis, 'window', {
+    value: windowMock,
+    writable: true,
+});
+
+// 3. Mock SoundEngine
 vi.mock('../audio/soundEngine', () => ({
     soundEngine: {
         setSoundEnabled: vi.fn(),
@@ -24,11 +59,10 @@ vi.mock('../audio/soundEngine', () => ({
     },
 }));
 
-describe('GameEngine — Reguły gry i symulacja (Krok 4.1)', () => {
+describe('GameEngine — Reguły gry i symulacja (Krok 4.1 & 4.2)', () => {
     let engine: GameEngine;
 
     beforeEach(() => {
-        // Izolacja localStorage przed każdym testem
         localStorage.clear();
         engine = new GameEngine();
     });
@@ -67,7 +101,6 @@ describe('GameEngine — Reguły gry i symulacja (Krok 4.1)', () => {
             engine.pauseGame();
 
             const initialPlayerX = engine.player1.x;
-            // Wymuszamy intencję ruchu w lewo
             engine.inputManager.setVirtualButton(1, 'left', true);
             engine.update();
 
@@ -78,13 +111,11 @@ describe('GameEngine — Reguły gry i symulacja (Krok 4.1)', () => {
     describe('System uzbrojenia i zarządzanie energią', () => {
         it('powinien pozwalać na wybór wyłącznie odblokowanych trybów broni', () => {
             engine.startNewGame();
-            // Gracz 1 startuje ze STANDARD odblokowanym domyślnie
             expect(engine.player1.unlockedWeaponModes).toContain(WeaponMode.STANDARD);
 
             engine.setWeaponMode(WeaponMode.STANDARD);
             expect(engine.player1.weaponMode).toBe(WeaponMode.STANDARD);
 
-            // Blokada przełączenia na zablokowany tryb (np. LASER_BEAM jeśli nie został odblokowany)
             if (!engine.player1.unlockedWeaponModes.includes(WeaponMode.LASER_BEAM)) {
                 engine.setWeaponMode(WeaponMode.LASER_BEAM);
                 expect(engine.player1.weaponMode).not.toBe(WeaponMode.LASER_BEAM);
@@ -98,9 +129,8 @@ describe('GameEngine — Reguły gry i symulacja (Krok 4.1)', () => {
             engine.player1.lives = 0;
             engine.player1.shield = 0;
 
-            // Wywołujemy tick silnika lub bezpośrednią mutację stanu, jeśli metoda nie istnieje
-            if (typeof (engine as any).handlePlayerDeath === 'function') {
-                (engine as any).handlePlayerDeath();
+            if (typeof (engine as unknown as { handlePlayerDeath?: () => void }).handlePlayerDeath === 'function') {
+                (engine as unknown as { handlePlayerDeath: () => void }).handlePlayerDeath();
             } else {
                 engine.update();
                 if (engine.player1.lives <= 0 && engine.gameState !== GameState.GAMEOVER) {
@@ -118,12 +148,39 @@ describe('GameEngine — Reguły gry i symulacja (Krok 4.1)', () => {
             const initialScore = engine.player1.score;
             const initialCredits = engine.credits;
 
-            // Dodanie punktów i kredytów
             engine.player1.score += 500;
             engine.credits += 50;
 
             expect(engine.player1.score).toBe(initialScore + 500);
             expect(engine.credits).toBe(initialCredits + 50);
+        });
+    });
+
+    describe('Hermetyzacja stanu i Snapshot API (Krok 4.2)', () => {
+        it('powinien wygenerować spójny niemutowalny snapshot stanu gry', () => {
+            engine.startMission(DifficultyLevel.HARD);
+            const snapshot = engine.getSnapshot();
+
+            expect(snapshot.gameState).toBe(GameState.PLAYING);
+            expect(snapshot.wave).toBe(1);
+            expect(snapshot.difficulty).toBe(DifficultyLevel.HARD);
+            expect(snapshot.player1.lives).toBe(engine.player1.lives);
+            expect(snapshot.player1.weaponMode).toBe(engine.player1.weaponMode);
+        });
+
+        it('powinien zmieniać stan audio za pomocą toggleAudio()', () => {
+            const initialAudio = engine.getSnapshot().soundEnabled;
+            const toggled = engine.toggleAudio();
+            expect(toggled).toBe(!initialAudio);
+            expect(engine.getSnapshot().soundEnabled).toBe(!initialAudio);
+        });
+
+        it('powinien zarządzać otwarciem panelu osiągnięć metodami intencji', () => {
+            expect(engine.getSnapshot().isAchievementsOpen).toBe(false);
+            engine.openAchievements();
+            expect(engine.getSnapshot().isAchievementsOpen).toBe(true);
+            engine.closeAchievements();
+            expect(engine.getSnapshot().isAchievementsOpen).toBe(false);
         });
     });
 });
