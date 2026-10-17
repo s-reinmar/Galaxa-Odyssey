@@ -1,7 +1,6 @@
 import {
     DifficultyLevel,
     DIFFICULTY_CONFIGS,
-    EnemyType,
     ENEMY_CONFIGS,
 } from '../../types/game';
 import {
@@ -11,6 +10,12 @@ import {
     ENEMY_HEIGHT,
 } from '../constants';
 import { Bomb, Bullet, Enemy, PowerUp } from '../entities/GameEntities';
+import {
+    DEFAULT_WAVE_ACHIEVEMENT_RULES,
+    type IAchievementRule,
+    type IAchievementSink,
+} from '../waves/WaveAchievementRules';
+import { DEFAULT_ENEMY_ROW_RULES, resolveEnemyType, type EnemyRowRule } from '../waves/EnemyRowRules';
 
 export interface WaveAchievementEvaluationParams {
     completedWave: number;
@@ -23,42 +28,17 @@ export interface WaveAchievementEvaluationParams {
 }
 
 export class WaveSystem {
+    constructor(
+        private readonly achievementRules: readonly IAchievementRule[] = DEFAULT_WAVE_ACHIEVEMENT_RULES,
+        private readonly enemyRowRules: readonly EnemyRowRule[] = DEFAULT_ENEMY_ROW_RULES
+    ) {}
+
     public evaluateWaveAchievements(params: WaveAchievementEvaluationParams): void {
-        const {
-            completedWave,
-            difficultyLevel,
-            tookDamageInCurrentWave,
-            player1Lives,
-            currentWaveDuration,
-            unlockAchievement,
-            incrementProgress,
-        } = params;
+        const { unlockAchievement, incrementProgress, ...ctx } = params;
+        if (ctx.completedWave < 1) return;
 
-        if (completedWave < 1) return;
-
-        unlockAchievement('first_wave');
-        incrementProgress('wave_three', 1);
-
-        if (completedWave >= 3) unlockAchievement('wave_three');
-        if (completedWave >= 5) unlockAchievement('interstellar_ace');
-        if (completedWave >= 10) unlockAchievement('cosmic_navigator');
-
-        if (difficultyLevel === DifficultyLevel.HARD) {
-            unlockAchievement('void_conqueror');
-            if (completedWave >= 3) {
-                unlockAchievement('nightmare_veteran');
-            }
-        }
-
-        if (!tookDamageInCurrentWave) {
-            unlockAchievement('indomitable');
-        }
-        if (player1Lives === 1) {
-            unlockAchievement('near_death_escape');
-        }
-        if (currentWaveDuration > 0 && currentWaveDuration < 20) {
-            unlockAchievement('speed_demon');
-        }
+        const sink: IAchievementSink = { unlock: unlockAchievement, increment: incrementProgress };
+        for (const rule of this.achievementRules) rule.apply(ctx, sink);
     }
 
     public createWaveEnemies(wave: number, difficultyLevel: DifficultyLevel): Enemy[] {
@@ -74,15 +54,7 @@ export class WaveSystem {
         const enemies: Enemy[] = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                let type = EnemyType.STANDARD;
-                if (r === 0 && wave >= 2) {
-                    type = EnemyType.ELITE;
-                } else if (r === 1 && wave >= 3) {
-                    type = EnemyType.DIVING;
-                } else if (r === 2 && wave >= 4) {
-                    type = EnemyType.SWARM;
-                }
-
+                const type = resolveEnemyType(r, wave, this.enemyRowRules);
                 const config = ENEMY_CONFIGS[type];
                 const hp = config?.hp ?? 1;
                 enemies.push({
