@@ -1,11 +1,9 @@
-import React from 'react';
-import { GameEngine } from '../game/GameEngine';
+﻿import React from 'react';
+import type { GameEngine } from '../game/GameEngine';
 import { SpaceCombatRadar } from './3d/SpaceCombatRadar';
 import { SpaceCombatLockOnHUD } from './3d/SpaceCombatLockOnHUD';
 import { GameState } from '../types/game';
-import { MAX_SHIELD, MAX_WEAPON_ENERGY } from '../game/constants';
-import { Camera, Sparkles, Flame, Radio, Radar, Maximize2, Minimize2 } from 'lucide-react';
-import { ShipSkinId } from './3d/SpaceHangarScene';
+import type { ShipSkinId } from './3d/SpaceHangarScene';
 import { CockpitHUDOverlay } from './3d/CockpitHUDOverlay';
 import { ShieldPanel } from './game/ShieldPanel';
 import { WeaponCapacitorPanel } from './game/WeaponCapacitorPanel';
@@ -13,6 +11,10 @@ import { WeaponSelector } from './game/WeaponSelector';
 import { WarpBanner } from './game/WarpBanner';
 import { PauseOverlay } from './game/PauseOverlay';
 import { GameOverOverlay } from './game/GameOverOverlay';
+import { CombatTopBar } from './game/CombatTopBar';
+import { CombatControlsBar } from './game/CombatControlsBar';
+import { WeaponAnnouncementBanner } from './game/WeaponAnnouncementBanner';
+import { PilotTwoBadge } from './game/PilotTwoBadge';
 import { useModern3DGameCanvasController } from '../hooks/useModern3DGameCanvasController';
 
 interface Modern3DGameCanvasProps {
@@ -32,19 +34,13 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
     isFullscreen = false,
     onToggleFullscreen,
 }) => {
-    const controller = useModern3DGameCanvasController({
-        engine,
-        onStateUpdate,
-        selectedSkin,
-        onReturnToHangar,
-        onToggleFullscreen,
-    });
     const {
         containerRef,
         viewMode,
         isWarpActive,
         showRadar,
         targetTelemetry,
+        view,
         hudMetrics: { shieldPercent, shieldLagPercent, energyPercent, isTakingDamage },
         toggleViewMode,
         handleToggleRadar,
@@ -53,9 +49,15 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
         returnToHangar,
         handleResume,
         handleRedeploy,
-    } = controller;
+    } = useModern3DGameCanvasController({
+        engine,
+        onStateUpdate,
+        selectedSkin,
+        onReturnToHangar,
+        onToggleFullscreen,
+    });
 
-    const p1 = engine.player1;
+    const isPlaying = view.gameState === GameState.PLAYING;
 
     return (
         <div
@@ -67,25 +69,25 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
         >
             <div ref={containerRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
 
-            {viewMode === 'COCKPIT_3D' && engine.gameState === GameState.PLAYING && (
+            {viewMode === 'COCKPIT_3D' && isPlaying && (
                 <CockpitHUDOverlay
-                    shield={p1.shield}
-                    maxShield={MAX_SHIELD}
-                    energy={p1.weaponEnergy}
-                    maxEnergy={MAX_WEAPON_ENERGY}
-                    lives={p1.lives}
-                    weaponMode={p1.weaponMode}
-                    bankAngle={p1.movingLeft ? -0.35 : p1.movingRight ? 0.35 : 0}
+                    shield={view.shield}
+                    maxShield={view.maxShield}
+                    energy={view.weaponEnergy}
+                    maxEnergy={view.maxWeaponEnergy}
+                    lives={view.lives}
+                    weaponMode={view.weaponMode}
+                    bankAngle={view.bankAngle}
                     isTakingDamage={isTakingDamage}
                     onToggleView={toggleViewMode}
                 />
             )}
 
-            {engine.gameState === GameState.PLAYING && viewMode !== 'COCKPIT_3D' && (
+            {isPlaying && viewMode !== 'COCKPIT_3D' && (
                 <SpaceCombatLockOnHUD
                     targets={targetTelemetry.targets}
                     primaryTarget={targetTelemetry.primaryTarget}
-                    weaponMode={p1.weaponMode}
+                    weaponMode={view.weaponMode}
                     isTakingDamage={isTakingDamage}
                 />
             )}
@@ -95,66 +97,28 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                     <ShieldPanel
                         shieldPercent={shieldPercent}
                         shieldLagPercent={shieldLagPercent}
-                        lives={p1.lives}
+                        lives={view.lives}
                         isTakingDamage={isTakingDamage}
-                        hitNotice={p1.hitNotice}
+                        hitNotice={view.hitNotice}
                     />
-
-                    <div className="flex flex-col items-center gap-1.5">
-                        <div className="px-4 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md border border-cyan-500/40 text-xs font-bold tracking-widest text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2">
-                            <Radio size={12} className="text-cyan-400 animate-pulse" />
-                            <span>SECTOR {engine.wave} • ACTIVE COMBAT ZONE</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={toggleViewMode}
-                                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-300 hover:text-white transition text-[11px] shadow-sm"
-                                title="Przełącz perspektywę kamery 3D (Klawisz V)"
-                            >
-                                <Camera size={13} className="text-cyan-400" />
-                                <span>
-                                    {viewMode === 'CHASE_3D' && 'Widok: Zza statku (3D)'}
-                                    {viewMode === 'COCKPIT_3D' && 'Widok: Bliski pościg (3D)'}
-                                    {viewMode === 'TACTICAL_3D' && 'Widok: Taktyczny (3D)'}
-                                </span>
-                                <span className="text-slate-500 text-[9px]">[V]</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={handleManualWarpJump}
-                                disabled={isWarpActive}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-500/40 text-indigo-300 hover:text-white transition text-[11px]"
-                                title="Wymuś skok w nadprzestrzeń (Warp Jump)"
-                            >
-                                <Flame size={12} className="text-indigo-400" />
-                                <span>Warp</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <WeaponCapacitorPanel energyPercent={energyPercent} score={p1.score} credits={engine.credits} />
+                    <CombatTopBar
+                        wave={view.wave}
+                        viewMode={viewMode}
+                        isWarpActive={isWarpActive}
+                        onToggleView={toggleViewMode}
+                        onWarpJump={handleManualWarpJump}
+                    />
+                    <WeaponCapacitorPanel energyPercent={energyPercent} score={view.score} credits={view.credits} />
                 </div>
 
-                {isWarpActive && <WarpBanner wave={engine.wave} />}
+                {isWarpActive && <WarpBanner wave={view.wave} />}
 
-                {engine.weaponAnnouncement && !isWarpActive && (
-                    <div
-                        className="self-center px-6 py-2 rounded-xl backdrop-blur-md border shadow-xl flex items-center gap-3 transition-all animate-bounce"
-                        style={{
-                            backgroundColor: 'rgba(8, 15, 42, 0.92)',
-                            borderColor: engine.weaponAnnouncement.color,
-                            boxShadow: `0 0 25px ${engine.weaponAnnouncement.color}40`,
-                        }}
-                    >
-                        <Sparkles size={18} style={{ color: engine.weaponAnnouncement.color }} />
-                        <div>
-                            <div className="font-black text-sm text-white tracking-wide">{engine.weaponAnnouncement.title}</div>
-                            <div className="text-[11px] text-slate-300">{engine.weaponAnnouncement.subtitle}</div>
-                        </div>
-                    </div>
+                {view.weaponAnnouncement && !isWarpActive && (
+                    <WeaponAnnouncementBanner
+                        title={view.weaponAnnouncement.title}
+                        subtitle={view.weaponAnnouncement.subtitle}
+                        color={view.weaponAnnouncement.color}
+                    />
                 )}
 
                 <div className="w-full flex items-end justify-between gap-4 pointer-events-auto">
@@ -164,91 +128,44 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                                 <SpaceCombatRadar
                                     targets={targetTelemetry.targets}
                                     primaryTarget={targetTelemetry.primaryTarget}
-                                    wave={engine.wave}
+                                    wave={view.wave}
                                 />
                             </div>
                         )}
-
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/85 backdrop-blur-md border border-slate-800 text-[10px] text-slate-400">
-                            <button
-                                type="button"
-                                onClick={handleToggleRadar}
-                                className={`flex items-center gap-1 font-bold px-1.5 py-0.5 rounded transition ${
-                                    showRadar
-                                        ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
-                                        : 'text-slate-400 hover:text-white bg-slate-800/60'
-                                }`}
-                                title="Przełącz Radar 3D (Klawisz R)"
-                            >
-                                <Radar size={11} className={showRadar ? 'text-cyan-400 animate-spin' : ''} style={{ animationDuration: '4s' }} />
-                                <span>RADAR [R]</span>
-                            </button>
-                            <span className="text-slate-600 hidden sm:inline">•</span>
-                            <span className="hidden sm:inline">[A/D] lub [←/→] Ruch</span>
-                            <span className="text-slate-600 hidden sm:inline">•</span>
-                            <span className="hidden sm:inline">[SPACJA] Ogień</span>
-                            <span className="text-slate-600 hidden sm:inline">•</span>
-                            <span className="hidden sm:inline">[1-4] Broń</span>
-                            <span className="text-slate-600 hidden sm:inline">•</span>
-                            <button
-                                type="button"
-                                onClick={toggleViewMode}
-                                className={`flex items-center gap-1 font-bold px-1.5 py-0.5 rounded transition ${
-                                    viewMode === 'COCKPIT_3D'
-                                        ? 'bg-amber-950 text-amber-300 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                                        : 'text-slate-400 hover:text-white bg-slate-800/60'
-                                }`}
-                                title="Przełącz Perspektywę (Klawisz V)"
-                            >
-                                <Camera size={11} />
-                                <span>{viewMode === 'COCKPIT_3D' ? 'KOKPIT' : 'TPP'} [V]</span>
-                            </button>
-                            {onToggleFullscreen && (
-                                <>
-                                    <span className="text-slate-600 hidden sm:inline">•</span>
-                                    <button
-                                        type="button"
-                                        onClick={onToggleFullscreen}
-                                        className="flex items-center gap-1 font-bold px-1.5 py-0.5 rounded text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 transition"
-                                        title="Przełącz Pełny Ekran [F]"
-                                    >
-                                        {isFullscreen ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
-                                        <span className="hidden md:inline">{isFullscreen ? 'OKNO' : 'PEŁNY EKRAN'} [F]</span>
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                        <CombatControlsBar
+                            viewMode={viewMode}
+                            showRadar={showRadar}
+                            isFullscreen={isFullscreen}
+                            onToggleRadar={handleToggleRadar}
+                            onToggleView={toggleViewMode}
+                            onToggleFullscreen={onToggleFullscreen}
+                        />
                     </div>
 
                     <WeaponSelector
-                        unlockedModes={p1.unlockedWeaponModes}
-                        activeMode={p1.weaponMode}
+                        unlockedModes={view.unlockedWeaponModes}
+                        activeMode={view.weaponMode}
                         onSelect={handleSelectWeapon}
                     />
 
-                    {engine.twoPlayerMode && engine.player2 && (
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-pink-500/30 text-[11px] text-pink-300 flex items-center gap-2">
-                            <span className="font-bold">PILOT 2:</span>
-                            <span>{engine.player2.lives > 0 ? `${engine.player2.lives} Lives` : 'KIA'}</span>
-                        </div>
-                    )}
+                    {view.player2 && <PilotTwoBadge lives={view.player2.lives} />}
                 </div>
             </div>
 
-            {engine.gameState === GameState.PAUSED && (
+            {view.gameState === GameState.PAUSED && (
                 <PauseOverlay
-                    wave={engine.wave}
+                    wave={view.wave}
                     onResume={handleResume}
                     onToggleView={toggleViewMode}
                     onAbort={returnToHangar}
                 />
             )}
 
-            {engine.gameState === GameState.GAMEOVER && (
+            {view.gameState === GameState.GAMEOVER && (
                 <GameOverOverlay
-                    wave={engine.wave}
-                    score={p1.score}
-                    credits={engine.credits}
+                    wave={view.wave}
+                    score={view.score}
+                    credits={view.credits}
                     onRedeploy={handleRedeploy}
                     onReturn={returnToHangar}
                 />

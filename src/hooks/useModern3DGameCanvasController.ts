@@ -8,6 +8,7 @@ import type { CameraViewMode, ProjectedTarget } from '../components/3d/SpaceComb
 import type { ShipSkinId } from '../components/3d/SpaceHangarScene';
 import type { WeaponMode } from '../types/game';
 import { calculateCombatHudMetrics } from '../game/services/combatHudMetrics';
+import { selectCombatViewModel } from '../game/services/combatViewModel';
 
 interface Modern3DGameCanvasControllerOptions {
     engine: GameEngine;
@@ -115,6 +116,7 @@ export function useModern3DGameCanvasController({
         isWarpActive,
         showRadar,
         targetTelemetry,
+        view: selectCombatViewModel(engine),
         hudMetrics: calculateCombatHudMetrics(engine.player1),
         toggleViewMode,
         handleToggleRadar,
