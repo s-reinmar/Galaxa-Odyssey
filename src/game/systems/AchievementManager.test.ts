@@ -7,7 +7,7 @@ const { playSound, saveAchievements } = vi.hoisted(() => ({
     saveAchievements: vi.fn(),
 }));
 
-vi.mock('../../audio/soundEngine', () => ({
+vi.mock('../audio/soundEngine', () => ({
     soundEngine: { playSound },
 }));
 

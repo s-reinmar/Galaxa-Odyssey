@@ -1,4 +1,4 @@
-import { soundEngine } from '../../audio/soundEngine';
+import { soundEngine } from './soundEngine';
 import type { SoundType } from '../../types/game';
 import type { IGameAudio } from './IGameAudio';
 

@@ -14,7 +14,7 @@ import {
   ShipSkinId,
 } from './3d/SpaceHangarScene';
 import { SpaceCinematicIntroOverlay } from './3d/SpaceCinematicIntroOverlay';
-import { soundEngine } from '../audio/soundEngine';
+import { soundEngine } from '../game/audio/soundEngine';
 import {
   Rocket,
   Shield,

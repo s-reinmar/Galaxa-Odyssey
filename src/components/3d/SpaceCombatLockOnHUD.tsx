@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ProjectedTarget } from './SpaceCombat3DScene';
 import { EnemyType, WeaponMode } from '../../types/game';
-import { soundEngine } from '../../audio/soundEngine';
+import { soundEngine } from '../../game/audio/soundEngine';
 import {
   Crosshair,
   Target,

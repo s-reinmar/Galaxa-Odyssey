@@ -5,7 +5,7 @@ import { SpaceCombatRadar } from './3d/SpaceCombatRadar';
 import { SpaceCombatLockOnHUD } from './3d/SpaceCombatLockOnHUD';
 import { GameState, WeaponMode } from '../types/game';
 import { MAX_SHIELD, MAX_WEAPON_ENERGY } from '../game/constants';
-import { soundEngine } from '../audio/soundEngine';
+import { soundEngine } from '../game/audio/soundEngine';
 import { Camera, Sparkles, Flame, Radio, Radar, Maximize2, Minimize2 } from 'lucide-react';
 import { ShipSkinId } from './3d/SpaceHangarScene';
 import { CockpitHUDOverlay } from './3d/CockpitHUDOverlay';

@@ -5,7 +5,7 @@ import { TouchControls } from './components/TouchControls';
 import { Modern3DMenu } from './components/Modern3DMenu';
 import { AchievementsOverlay } from './components/AchievementsOverlay';
 import { AchievementToast } from './components/AchievementToast';
-import { soundEngine } from './audio/soundEngine';
+import { soundEngine } from './game/audio/soundEngine';
 import { GameState } from './types/game';
 import { ShipSkinId } from './components/3d/SpaceHangarScene';
 import {

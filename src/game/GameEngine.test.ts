@@ -39,7 +39,7 @@ Object.defineProperty(globalThis, 'window', {
 });
 
 // 3. Mock SoundEngine
-vi.mock('../audio/soundEngine', () => ({
+vi.mock('./audio/soundEngine', () => ({
     soundEngine: {
         setSoundEnabled: vi.fn(),
         isSoundEnabled: vi.fn(() => true),

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { GameState } from '../types/game';
-import { soundEngine } from '../audio/soundEngine';
+import { soundEngine } from '../game/audio/soundEngine';
 
 interface CombatShortcutsOptions {
     engine: GameEngine;
