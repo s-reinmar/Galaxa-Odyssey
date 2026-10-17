@@ -26,6 +26,10 @@ import { WeaponSystem } from './systems/WeaponSystem';
 import { WaveSystem } from './systems/WaveSystem';
 import { CollisionSystem, ICollisionContext } from './systems/CollisionSystem';
 import { UpgradeSystem, IUpgradeContext } from './systems/UpgradeSystem';
+import { PlayerController } from './systems/PlayerController';
+import { InputBindings } from './input/InputBindings';
+import { ProfileMapper } from './persistence/ProfileMapper';
+import { SnapshotBuilder } from './snapshot/SnapshotBuilder';
 
 export type {
     ActiveAchievementToast,
@@ -84,6 +88,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     private readonly _waveSystem = new WaveSystem();
     private readonly _collisionSystem = new CollisionSystem();
     private readonly _upgradeSystem = new UpgradeSystem();
+    private readonly _playerController = new PlayerController(this._inputManager);
 
     private onStateChange?: () => void;
 
@@ -302,149 +307,28 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     // --- SNAPSHOT STANU DLA REACTA ---
 
     public getSnapshot(): GameEngineSnapshot {
-        return {
-            gameState: this._gameState,
-            wave: this._wave,
-            credits: this._credits,
-            twoPlayerMode: this._twoPlayerMode,
-            difficulty: this._difficultyLevel,
-            soundEnabled: this._soundEnabled,
-            particlesEnabled: this._particlesEnabled,
-            isAchievementsOpen: this._achievementManager.isOpen,
-            highScore: this._highScore,
-            profileScore: this._profileScore,
-            player1: {
-                lives: this.player1.lives,
-                shield: this.player1.shield,
-                shieldLag: this.player1.shieldLag ?? this.player1.shield,
-                score: this.player1.score,
-                weaponLevel: this.player1.weaponLevel,
-                weaponMode: this.player1.weaponMode,
-                weaponEnergy: this.player1.weaponEnergy,
-                unlockedWeaponModes: [...this.player1.unlockedWeaponModes],
-                damageFlash: this.player1.damageFlash ?? 0,
-                hitNotice: this.player1.hitNotice,
-            },
-            player2:
-                this._twoPlayerMode && this.player2
-                    ? {
-                        lives: this.player2.lives,
-                        shield: this.player2.shield,
-                        shieldLag: this.player2.shieldLag ?? this.player2.shield,
-                        score: this.player2.score,
-                        weaponLevel: this.player2.weaponLevel,
-                        weaponMode: this.player2.weaponMode,
-                        weaponEnergy: this.player2.weaponEnergy,
-                        unlockedWeaponModes: [...this.player2.unlockedWeaponModes],
-                        damageFlash: this.player2.damageFlash ?? 0,
-                        hitNotice: this.player2.hitNotice,
-                    }
-                    : undefined,
-        };
+        return SnapshotBuilder.build(this);
     }
 
     // --- KONFIGURACJA WEJŚCIA ---
 
     private setupInputHandlers(): void {
-        this._inputManager.setOnWeaponCycle((dir: 1 | -1) => {
-            if (this._gameState === GameState.PLAYING) {
-                this.cycleWeaponMode(dir);
-            }
-        });
-
-        this._inputManager.setOnWeaponSelect((modeIdx: number) => {
-            if (this._gameState === GameState.PLAYING) {
-                const modes = [
-                    WeaponMode.STANDARD,
-                    WeaponMode.TRIPLE_SHOT,
-                    WeaponMode.LASER_BEAM,
-                    WeaponMode.PLASMA_SPREAD,
-                ];
-                if (modes[modeIdx]) {
-                    this.setWeaponMode(modes[modeIdx]);
-                }
-            }
-        });
-
-        this._inputManager.setOnPauseToggle(() => {
-            if (this._gameState === GameState.PLAYING) this.pauseGame();
-            else if (this._gameState === GameState.PAUSED) this.resumeGame();
-        });
-
-        this._inputManager.setOnAchievementsToggle(() => {
-            this.toggleAchievements();
-        });
-
-        this._inputManager.setOnFireStart((pIdx: number) => {
-            if (this._gameState === GameState.PLAYING) {
-                if (pIdx === 1) {
-                    this.spaceHeld = true;
-                    if (this.fireCooldown === 0) this.firePlayer1();
-                } else if (pIdx === 2 && this._twoPlayerMode) {
-                    this.secondPlayerFireHeld = true;
-                    if (this.secondPlayerFireCooldown === 0) this.firePlayer2();
-                }
-            }
-        });
-
-        this._inputManager.setOnFireEnd((pIdx: number) => {
-            if (pIdx === 1) {
-                this.spaceHeld = false;
-                this.player1.isLaserActive = false;
-            } else if (pIdx === 2) {
-                this.secondPlayerFireHeld = false;
-            }
-        });
+        InputBindings.bind(this._inputManager, this);
     }
 
     // --- PERSYSTENCJA ---
 
     public loadProfile(): void {
-        const data = StorageService.loadProfile();
-        this._credits = data.credits;
-        this._profileScore = data.profileScore;
-        this._highScore = data.highScore;
-        this.ownedWeaponLevel = data.ownedWeaponLevel;
-        this.doubleLives = data.doubleLives;
-        this.infiniteLives = data.infiniteLives;
-        if (typeof data.soundEnabled === 'boolean') {
-            this._soundEnabled = data.soundEnabled;
-            soundEngine.setSoundEnabled(this._soundEnabled);
-        }
-        if (typeof data.particlesEnabled === 'boolean') {
-            this._particlesEnabled = data.particlesEnabled;
-        }
+        ProfileMapper.applyProfile(this, StorageService.loadProfile());
     }
 
     public saveProfile(): void {
-        StorageService.saveProfile({
-            credits: this._credits,
-            profileScore: this._profileScore,
-            highScore: this._highScore,
-            ownedWeaponLevel: this.ownedWeaponLevel,
-            doubleLives: this.doubleLives,
-            infiniteLives: this.infiniteLives,
-            soundEnabled: this._soundEnabled,
-            particlesEnabled: this._particlesEnabled,
-        });
+        StorageService.saveProfile(ProfileMapper.toProfileData(this));
     }
 
     public saveGameSession(): void {
         if (this._gameState !== GameState.PLAYING && this._gameState !== GameState.PAUSED) return;
-        StorageService.saveSession({
-            lives: this.player1.lives,
-            weaponLevel: this.player1.weaponLevel,
-            weaponMode: this.player1.weaponMode,
-            unlockedModes: this.player1.unlockedWeaponModes,
-            score: this.player1.score,
-            stage: this._wave,
-            credits: this._credits,
-            ownedWeaponLevel: this.ownedWeaponLevel,
-            doubleLives: this.doubleLives,
-            infiniteLives: this.infiniteLives,
-            highScore: this._highScore,
-            profileScore: this._profileScore,
-        });
+        StorageService.saveSession(ProfileMapper.toSessionData(this));
         this.saveProfile();
     }
 
@@ -457,16 +341,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
         if (!data) return false;
 
         this.resetPlayers();
-        this.player1.lives = data.lives ?? 3;
-        this.player1.weaponLevel = data.weaponLevel ?? 1;
-        this.player1.weaponMode = data.weaponMode ?? WeaponMode.STANDARD;
-        this.player1.unlockedWeaponModes = data.unlockedModes ?? [WeaponMode.STANDARD];
-        this.player1.score = data.score ?? 0;
-        this._wave = Math.max(0, (data.stage ?? 1) - 1);
-        this._credits = data.credits ?? this._credits;
-        this.ownedWeaponLevel = data.ownedWeaponLevel ?? this.ownedWeaponLevel;
-        this.doubleLives = !!data.doubleLives;
-        this.infiniteLives = !!data.infiniteLives;
+        ProfileMapper.applySession(this, data);
 
         this._gameState = GameState.PLAYING;
         this.clearEntities();
@@ -607,43 +482,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
 
         this.currentWaveDuration += 1 / 60;
 
-        // Gracz 1: ruch, efekty, strzał
-        PlayerEntityService.updateMovement(
-            this.player1,
-            this._inputManager.isP1MovingLeft(),
-            this._inputManager.isP1MovingRight(),
-            this._inputManager.isP1MovingUp(),
-            this._inputManager.isP1MovingDown()
-        );
-        PlayerEntityService.updateEffectsAndEnergy(this.player1, true);
-
-        if (this.fireCooldown > 0) this.fireCooldown--;
-        const isP1Firing = this._inputManager.isP1Firing() || this.spaceHeld;
-        if (isP1Firing && this.player1.lives > 0) {
-            if (this.player1.weaponMode === WeaponMode.LASER_BEAM || this.fireCooldown === 0) {
-                this.firePlayer1();
-            }
-        } else {
-            this.player1.isLaserActive = false;
-        }
-
-        // Gracz 2: ruch, efekty, strzał
-        if (this._twoPlayerMode && this.player2 && this.player2.lives > 0) {
-            PlayerEntityService.updateMovement(
-                this.player2,
-                this._inputManager.isP2MovingLeft(),
-                this._inputManager.isP2MovingRight(),
-                this._inputManager.isP2MovingUp(),
-                this._inputManager.isP2MovingDown()
-            );
-            PlayerEntityService.updateEffectsAndEnergy(this.player2, false);
-
-            if (this.secondPlayerFireCooldown > 0) this.secondPlayerFireCooldown--;
-            const isP2Firing = this._inputManager.isP2Firing() || this.secondPlayerFireHeld;
-            if (isP2Firing && this.secondPlayerFireCooldown === 0) {
-                this.firePlayer2();
-            }
-        }
+        this._playerController.update(this);
 
         // Ruch pocisków, wrogów, bomb i power-upów
         this._waveSystem.updateBullets(this.bullets);
