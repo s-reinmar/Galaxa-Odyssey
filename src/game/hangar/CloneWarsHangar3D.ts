@@ -1,21 +1,7 @@
 import * as THREE from 'three';
-import { IHangarSceneEntity } from '../controllers/LaunchSequenceController';
+import type { IHangarSceneEntity } from '../controllers/LaunchSequenceController';
 
-/**
- * CloneWarsHangar3D - High-Fidelity Monumental Star Wars Republic Battle Hangar Bay
- * Implements IHangarSceneEntity with hermetic encapsulation, OOP, SRP, and procedural AAA visual fidelity:
- * - High-resolution procedural canvas textures (blast plates, runway guides, hazard stripes, wall conduits)
- * - Vaulted circular ribbed ceiling dome with cathedral arch structural ribs
- * - Suspended central tiered inverted saucer chandelier with volumetric theatrical spotlight cones
- * - Overhead gantry maintenance with animated welding sparks particle system
- * - Atmospheric floating dust motes drifting through spotlight beams
- * - Cryo steam vapor vents puffing from the landing pad pressure seals
- * - Heavy industrial landing pad with hydraulic pistons, articulated magnetic clamps, and hazard trim
- * - Parked Republic LAAT Gunships with dual ball turrets, missile pods, and wingtip strobes
- * - Animated Astromech Droid with rotating dome and blinking optic sensor
- * - Holographic tactical display table projecting rotating 3D planetary wireframe
- * - Staged military cargo crates, power generators, and cloaked commander/crew silhouettes
- */
+/** Procedurally builds and animates the hangar scene, and owns its Three.js resources. */
 export class CloneWarsHangar3D implements IHangarSceneEntity {
   public mesh: THREE.Group;
   public landingPad: THREE.Group;
@@ -24,18 +10,16 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   private materials: THREE.Material[] = [];
   private geometries: THREE.BufferGeometry[] = [];
   private textures: THREE.Texture[] = [];
-  private spotlightCones: THREE.Mesh[] = [];
-  private spotlights: THREE.SpotLight[] = [];
-  private forceField!: THREE.Mesh;
+  private forceField: THREE.Mesh | null = null;
   private beaconLights: THREE.Mesh[] = [];
 
   // Particle systems
-  private sparkParticles!: THREE.Points;
-  private sparkPositions!: Float32Array;
+  private sparkParticles: THREE.Points | null = null;
+  private sparkPositions: Float32Array | null = null;
   private sparkVelocities: { x: number; y: number; z: number; life: number; maxLife: number }[] = [];
-  private dustParticles!: THREE.Points;
-  private astromechHead!: THREE.Group;
-  private holoPlanet!: THREE.Group;
+  private dustParticles: THREE.Points | null = null;
+  private astromechHead: THREE.Group | null = null;
+  private holoPlanet: THREE.Group | null = null;
   private deckCrewOfficers: { group: THREE.Group; head: THREE.Mesh; seed: number }[] = [];
   private deckCrewTechs: { group: THREE.Group; arm: THREE.Mesh; seed: number }[] = [];
   private serviceDrones: {
@@ -52,6 +36,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   private isGateOpen: boolean = false;
   private gateProgress: number = 0;
   private nextSparkTime: number = 0.5;
+  private disposed = false;
 
   // Dimensional specs
   public readonly radius = 30;
@@ -242,38 +227,6 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     return texture;
   }
 
-  private generateHazardTexture(): THREE.CanvasTexture {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d')!;
-
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, 1024, 1024);
-
-    const stripe = 96;
-    ctx.fillStyle = '#f59e0b';
-    for (let x = -1024; x < 2048; x += stripe * 2) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x + 1024, 1024);
-      ctx.lineTo(x + 1024 + stripe, 1024);
-      ctx.lineTo(x + stripe, 0);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    const texture = this.trackTexture(new THREE.CanvasTexture(canvas));
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 1);
-    texture.generateMipmaps = true;
-    texture.anisotropy = 16;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    return texture;
-  }
-
   private generateWallArmorTexture(): THREE.CanvasTexture {
     const canvas = document.createElement('canvas');
     canvas.width = 2048;
@@ -320,7 +273,6 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   private buildMonumentalHangar(): void {
     const deckTexture = this.generateDeckPlateTexture();
     const runwayTexture = this.generateRunwayTexture();
-    const hazardTexture = this.generateHazardTexture();
     const wallTexture = this.generateWallArmorTexture();
 
     // 1. Realistic Materials Palette (PBR Standard & Physical)
@@ -357,15 +309,6 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
         metalness: 0.90,
         roughness: 0.20,
         envMapIntensity: 1.3,
-      })
-    );
-
-    const hazardMat = this.trackMaterial(
-      new THREE.MeshStandardMaterial({
-        map: hazardTexture,
-        roughness: 0.35,
-        metalness: 0.55,
-        envMapIntensity: 1.0,
       })
     );
 
@@ -493,7 +436,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     this.buildSaucerChandelier(archSteelMat, darkSteelMat, amberBeaconMat);
 
     // 7. Heavy Armored Landing Pad (Ventral Thruster Pit & Hydraulic Stanchions)
-    this.buildLandingPad(archSteelMat, hazardMat, chromeMat, cyanGlowMat, amberBeaconMat);
+    this.buildLandingPad(archSteelMat, chromeMat, cyanGlowMat);
 
     // 8. Docked Republic LAAT Gunships & Equipment
     this.buildBackgroundDockingBays(republicWhiteMat, republicRedMat, darkSteelMat, archSteelMat, amberBeaconMat, cyanGlowMat);
@@ -514,7 +457,6 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
         // Only solid physical meshes cast shadows; skip volumetric beams and forcefields
         if (
           obj !== this.forceField &&
-          !this.spotlightCones.includes(obj) &&
           !(obj.material instanceof THREE.MeshBasicMaterial)
         ) {
           obj.castShadow = true;
@@ -585,10 +527,8 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
 
   private buildLandingPad(
     archMat: THREE.Material,
-    hazardMat: THREE.Material,
     chromeMat: THREE.Material,
-    cyanMat: THREE.Material,
-    amberMat: THREE.Material
+    cyanMat: THREE.Material
   ): void {
     // Octagonal tiered pad base
     const padBaseGeo = this.trackGeometry(new THREE.CylinderGeometry(5.2, 5.6, 0.45, 8));
@@ -630,7 +570,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
       this.landingPad.add(clamp);
 
       // Cyan clamp status beacon (replaces distracting amber)
-      const cBeacon = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), cyanMat);
+      const cBeacon = new THREE.Mesh(this.trackGeometry(new THREE.SphereGeometry(0.1, 8, 8)), cyanMat);
       cBeacon.position.set(Math.sin(ca) * 5.1, 0.8, Math.cos(ca) * 5.1);
       this.landingPad.add(cBeacon);
       this.beaconLights.push(cBeacon);
@@ -700,9 +640,8 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
 
     // 7. Cloaked Officers and Technicians
     const cloakMat = this.trackMaterial(new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.9 }));
-    const skinMat = this.trackMaterial(new THREE.MeshStandardMaterial({ color: 0xc8c2b9, roughness: 0.6 }));
-    this.createCloakedOfficer(new THREE.Vector3(-2.2, 0, 8.2), cloakMat, skinMat);
-    this.createCloakedOfficer(new THREE.Vector3(1.6, 0, 9.8), cloakMat, skinMat);
+    this.createCloakedOfficer(new THREE.Vector3(-2.2, 0, 8.2), cloakMat);
+    this.createCloakedOfficer(new THREE.Vector3(1.6, 0, 9.8), cloakMat);
     this.createDeckCrewTechnician(new THREE.Vector3(-12.0, 0, -2.0), archMat);
     this.createDeckCrewTechnician(new THREE.Vector3(12.5, 0, 3.0), archMat);
 
@@ -786,7 +725,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     ship.add(rPod);
 
     // Wingtip Strobes
-    const lStrobe = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), amberMat);
+    const lStrobe = new THREE.Mesh(this.trackGeometry(new THREE.SphereGeometry(0.12, 8, 8)), amberMat);
     lStrobe.position.set(-6.6, 2.7, 0.9);
     ship.add(lStrobe);
     this.beaconLights.push(lStrobe);
@@ -826,7 +765,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     droid.add(head);
 
     // Blinking eye sensor
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), cyanMat);
+    const eye = new THREE.Mesh(this.trackGeometry(new THREE.SphereGeometry(0.06, 8, 8)), cyanMat);
     eye.position.set(0, 1.05, 0.3);
     droid.add(eye);
     this.beaconLights.push(eye);
@@ -937,7 +876,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     cluster.add(crate3);
 
     // Glowing status panel
-    const led = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.4), amberMat);
+    const led = new THREE.Mesh(this.trackGeometry(new THREE.BoxGeometry(0.1, 0.2, 0.4)), amberMat);
     led.position.set(0.92, 0.8, 0);
     cluster.add(led);
     this.beaconLights.push(led);
@@ -945,7 +884,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     this.mesh.add(cluster);
   }
 
-  private createCloakedOfficer(pos: THREE.Vector3, cloakMat: THREE.Material, skinMat: THREE.Material): void {
+  private createCloakedOfficer(pos: THREE.Vector3, cloakMat: THREE.Material): void {
     const figure = new THREE.Group();
     figure.position.copy(pos);
 
@@ -1017,7 +956,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     drone.add(ant);
 
     // Blinking eye
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), cyanMat);
+    const eye = new THREE.Mesh(this.trackGeometry(new THREE.SphereGeometry(0.08, 8, 8)), cyanMat);
     eye.position.set(0, 0, 0.32);
     drone.add(eye);
     this.beaconLights.push(eye);
@@ -1053,14 +992,15 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   private buildParticleSystems(): void {
     // 1. Welding Sparks Particle System
     const sparkCount = 120;
-    const sparkGeo = new THREE.BufferGeometry();
-    this.sparkPositions = new Float32Array(sparkCount * 3);
+    const sparkGeo = this.trackGeometry(new THREE.BufferGeometry());
+    const sparkPositions = new Float32Array(sparkCount * 3);
+    this.sparkPositions = sparkPositions;
     const sparkColors = new Float32Array(sparkCount * 3);
 
     for (let i = 0; i < sparkCount; i++) {
-      this.sparkPositions[i * 3] = 0;
-      this.sparkPositions[i * 3 + 1] = -100; // Inactive below deck
-      this.sparkPositions[i * 3 + 2] = 0;
+      sparkPositions[i * 3] = 0;
+      sparkPositions[i * 3 + 1] = -100; // Inactive below deck
+      sparkPositions[i * 3 + 2] = 0;
 
       sparkColors[i * 3] = 1.0;
       sparkColors[i * 3 + 1] = 0.75 + Math.random() * 0.25;
@@ -1069,7 +1009,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
       this.sparkVelocities.push({ x: 0, y: 0, z: 0, life: 0, maxLife: 0 });
     }
 
-    sparkGeo.setAttribute('position', new THREE.BufferAttribute(this.sparkPositions, 3));
+    sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPositions, 3));
     sparkGeo.setAttribute('color', new THREE.BufferAttribute(sparkColors, 3));
 
     const sparkMat = this.trackMaterial(
@@ -1087,7 +1027,7 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
 
     // 2. Atmospheric Floating Dust Motes
     const dustCount = 350;
-    const dustGeo = new THREE.BufferGeometry();
+    const dustGeo = this.trackGeometry(new THREE.BufferGeometry());
     const dustPos = new Float32Array(dustCount * 3);
 
     for (let d = 0; d < dustCount; d++) {
@@ -1114,6 +1054,11 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   }
 
   private triggerWeldingSparks(): void {
+    const sparkPositions = this.sparkPositions;
+    if (!sparkPositions) {
+      return;
+    }
+
     // Two high maintenance catwalk weld origins
     const weldOrigins = [
       new THREE.Vector3(-12.5, 11.2, -7.5),
@@ -1127,9 +1072,9 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
 
     for (let i = 0; i < this.sparkVelocities.length && activated < burstSize; i++) {
       if (this.sparkVelocities[i].life <= 0) {
-        this.sparkPositions[i * 3] = origin.x + (Math.random() - 0.5) * 0.3;
-        this.sparkPositions[i * 3 + 1] = origin.y + (Math.random() - 0.5) * 0.3;
-        this.sparkPositions[i * 3 + 2] = origin.z + (Math.random() - 0.5) * 0.3;
+        sparkPositions[i * 3] = origin.x + (Math.random() - 0.5) * 0.3;
+        sparkPositions[i * 3 + 1] = origin.y + (Math.random() - 0.5) * 0.3;
+        sparkPositions[i * 3 + 2] = origin.z + (Math.random() - 0.5) * 0.3;
 
         this.sparkVelocities[i] = {
           x: (Math.random() - 0.5) * 4.5,
@@ -1210,44 +1155,56 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   }
 
   public update(deltaTime: number, rotatePad: boolean = true): void {
-    this.elapsedTime += deltaTime;
+    if (this.disposed) {
+      return;
+    }
 
-    // Gate opening animation
+    this.elapsedTime += deltaTime;
+    this.updateGate(deltaTime);
+
+    if (rotatePad) {
+      this.landingPad.rotation.y += 0.22 * deltaTime;
+    }
+
+    this.updateBeaconLights();
+    this.updateCrewAnimations(deltaTime);
+    this.updateServiceDrones(deltaTime);
+    this.updateWeldingSparks(deltaTime);
+    this.updateDustMotes();
+  }
+
+  private updateGate(deltaTime: number): void {
     if (this.isGateOpen) {
       this.gateProgress = Math.min(1.0, this.gateProgress + deltaTime * 1.5);
     } else {
       this.gateProgress = Math.max(0.0, this.gateProgress - deltaTime * 1.5);
     }
 
-    if (this.forceField && this.forceField.material) {
-      const mat = this.forceField.material as THREE.MeshBasicMaterial;
+    const forceField = this.forceField;
+    if (forceField && forceField.material) {
+      const mat = forceField.material as THREE.MeshBasicMaterial;
       const pulse = Math.sin(this.elapsedTime * 2.0) * 0.02;
       mat.opacity = Math.max(0.01, (0.2 + pulse) * (1.0 - this.gateProgress));
-      this.forceField.visible = this.gateProgress < 0.98;
+      forceField.visible = this.gateProgress < 0.98;
     }
+  }
 
-    // Slow rotating landing pad in idle mode
-    if (rotatePad) {
-      this.landingPad.rotation.y += 0.22 * deltaTime;
-    }
-
-    // Calm aerospace beacon indicator lights (slow, gentle breathing, no rapid strobe)
+  private updateBeaconLights(): void {
     const beaconGlow = 0.85 + Math.sin(this.elapsedTime * 1.5) * 0.1;
     for (const beacon of this.beaconLights) {
       (beacon.material as THREE.MeshBasicMaterial).opacity = beaconGlow;
     }
+  }
 
-    // Astromech dome head subtle turning
+  private updateCrewAnimations(deltaTime: number): void {
     if (this.astromechHead) {
       this.astromechHead.rotation.y = Math.sin(this.elapsedTime * 1.2) * 0.8;
     }
 
-    // Tactical hologram rotation
     if (this.holoPlanet) {
       this.holoPlanet.rotation.y += 0.45 * deltaTime;
     }
 
-    // Subtle idle animation loop for cloaked officers (breathing + slow head scanning)
     for (const off of this.deckCrewOfficers) {
       const breath = 1.0 + Math.sin(this.elapsedTime * 1.5 + off.seed) * 0.015;
       off.group.scale.y = breath;
@@ -1255,15 +1212,15 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
       off.head.rotation.x = Math.sin(this.elapsedTime * 0.9 + off.seed) * 0.06;
     }
 
-    // Subtle idle animation loop for deck crew technicians (diagnostic tool arm & weight shifting)
     for (const tech of this.deckCrewTechs) {
       const sway = Math.sin(this.elapsedTime * 1.2 + tech.seed) * 0.02;
       tech.group.rotation.z = sway;
       tech.arm.rotation.x = 0.6 + Math.sin(this.elapsedTime * 2.0 + tech.seed) * 0.22;
       tech.arm.rotation.z = Math.cos(this.elapsedTime * 1.5 + tech.seed) * 0.12;
     }
+  }
 
-    // Rotating service drones (repulsorlift hover bobbing + scanning ring spin + patrol orbit)
+  private updateServiceDrones(deltaTime: number): void {
     for (const drone of this.serviceDrones) {
       const t = this.elapsedTime * drone.speed + drone.seed;
       const hoverY = drone.basePos.y + Math.sin(this.elapsedTime * 2.2 + drone.seed) * 0.14;
@@ -1276,15 +1233,18 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
 
       drone.ring.rotation.z += 2.4 * deltaTime;
     }
+  }
 
-    // Welding Sparks Animation
+  private updateWeldingSparks(deltaTime: number): void {
     this.nextSparkTime -= deltaTime;
     if (this.nextSparkTime <= 0) {
       this.triggerWeldingSparks();
       this.nextSparkTime = 0.8 + Math.random() * 1.4;
     }
 
-    if (this.sparkParticles && this.sparkPositions) {
+    const sparkParticles = this.sparkParticles;
+    const sparkPositions = this.sparkPositions;
+    if (sparkParticles && sparkPositions) {
       const gravity = 9.8;
       for (let i = 0; i < this.sparkVelocities.length; i++) {
         const vel = this.sparkVelocities[i];
@@ -1292,27 +1252,29 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
           vel.life -= deltaTime;
           vel.y -= gravity * deltaTime;
 
-          this.sparkPositions[i * 3] += vel.x * deltaTime;
-          this.sparkPositions[i * 3 + 1] += vel.y * deltaTime;
-          this.sparkPositions[i * 3 + 2] += vel.z * deltaTime;
+          sparkPositions[i * 3] += vel.x * deltaTime;
+          sparkPositions[i * 3 + 1] += vel.y * deltaTime;
+          sparkPositions[i * 3 + 2] += vel.z * deltaTime;
 
           // Floor bounce
-          if (this.sparkPositions[i * 3 + 1] < 0.05) {
-            this.sparkPositions[i * 3 + 1] = 0.05;
+          if (sparkPositions[i * 3 + 1] < 0.05) {
+            sparkPositions[i * 3 + 1] = 0.05;
             vel.y = -vel.y * 0.35;
             vel.x *= 0.6;
             vel.z *= 0.6;
           }
         } else {
-          this.sparkPositions[i * 3 + 1] = -100; // Hide below floor
+          sparkPositions[i * 3 + 1] = -100; // Hide below floor
         }
       }
-      this.sparkParticles.geometry.attributes.position.needsUpdate = true;
+      sparkParticles.geometry.attributes.position.needsUpdate = true;
     }
+  }
 
-    // Atmospheric Dust Drifting
-    if (this.dustParticles) {
-      const posAttr = this.dustParticles.geometry.attributes.position as THREE.BufferAttribute;
+  private updateDustMotes(): void {
+    const dustParticles = this.dustParticles;
+    if (dustParticles) {
+      const posAttr = dustParticles.geometry.attributes.position as THREE.BufferAttribute;
       for (let d = 0; d < posAttr.count; d++) {
         let y = posAttr.getY(d) + Math.sin(this.elapsedTime + d) * 0.008;
         if (y < 0.2) y = this.height - 3.5;
@@ -1324,6 +1286,13 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
   }
 
   public dispose(): void {
+    if (this.disposed) {
+      return;
+    }
+    this.disposed = true;
+
+    this.mesh.clear();
+    this.landingPad.clear();
     for (const geo of this.geometries) {
       geo.dispose();
     }
@@ -1336,11 +1305,16 @@ export class CloneWarsHangar3D implements IHangarSceneEntity {
     this.geometries = [];
     this.materials = [];
     this.textures = [];
-    this.spotlightCones = [];
-    this.spotlights = [];
+    this.forceField = null;
+    this.sparkParticles = null;
+    this.sparkPositions = null;
+    this.dustParticles = null;
+    this.astromechHead = null;
+    this.holoPlanet = null;
     this.beaconLights = [];
     this.deckCrewOfficers = [];
     this.deckCrewTechs = [];
     this.serviceDrones = [];
+    this.sparkVelocities = [];
   }
 }

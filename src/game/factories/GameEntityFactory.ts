@@ -10,12 +10,12 @@ export class HangarFactory {
     }
 
     public static createHangar(): CloneWarsHangar3D {
-        return new CloneWarsHangar3D();
+        return this.createCloneWarsHangar();
     }
 }
 
 /**
- * EntityFactory - podstawowe fabryki obiektów geometrii i świateł pomocniczych.
+ * EntityFactory - tworzy pomocnicze światła sceny.
  */
 export class EntityFactory {
     public static createDirectionalLight(
