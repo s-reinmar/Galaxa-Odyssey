@@ -1,16 +1,8 @@
 import * as THREE from 'three';
-import type { HangarMaterials } from './HangarMaterials';
-import type { HangarResourceTracker } from './HangarResourceTracker';
-import type { HangarAnimationTargets } from './HangarTypes';
+import { HangarPropGroup } from './HangarPropGroup';
 
 /** Creates a cohesive group of hangar props using the shared resource tracker and animation targets. */
-export class HangarFacilityProps {
-  constructor(
-    private readonly tracker: HangarResourceTracker,
-    private readonly materials: HangarMaterials,
-    private readonly targets: HangarAnimationTargets
-  ) {}
-
+export class HangarFacilityProps extends HangarPropGroup {
   public createHoloTable(): THREE.Group {
     const table = new THREE.Group();
 

@@ -1,16 +1,8 @@
 import * as THREE from 'three';
-import type { HangarMaterials } from './HangarMaterials';
-import type { HangarResourceTracker } from './HangarResourceTracker';
-import type { HangarAnimationTargets } from './HangarTypes';
+import { HangarPropGroup } from './HangarPropGroup';
 
 /** Creates a cohesive group of hangar props using the shared resource tracker and animation targets. */
-export class HangarCrewProps {
-  constructor(
-    private readonly tracker: HangarResourceTracker,
-    private readonly materials: HangarMaterials,
-    private readonly targets: HangarAnimationTargets
-  ) {}
-
+export class HangarCrewProps extends HangarPropGroup {
   public createCloakedOfficer(pos: THREE.Vector3): THREE.Group {
     const figure = new THREE.Group();
     figure.position.copy(pos);

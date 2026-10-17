@@ -1,16 +1,19 @@
 import * as THREE from 'three';
 import type { HangarMaterials } from './HangarMaterials';
 import type { HangarResourceTracker } from './HangarResourceTracker';
+import { HangarPropGroup } from './HangarPropGroup';
 import type { HangarAnimationTargets, HangarDimensions, SparkSystem, SparkVelocity } from './HangarTypes';
 
 /** Creates a cohesive group of hangar props using the shared resource tracker and animation targets. */
-export class HangarEffectProps {
+export class HangarEffectProps extends HangarPropGroup {
   constructor(
-    private readonly tracker: HangarResourceTracker,
-    private readonly materials: HangarMaterials,
-    private readonly targets: HangarAnimationTargets,
+    tracker: HangarResourceTracker,
+    materials: HangarMaterials,
+    targets: HangarAnimationTargets,
     private readonly dimensions: HangarDimensions
-  ) {}
+  ) {
+    super(tracker, materials, targets);
+  }
 
   public createServiceDrone(pos: THREE.Vector3, orbitRadius: number, speed: number): THREE.Group {
     const drone = new THREE.Group();

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Spaceship3D } from './Spaceship3D';
 import { HangarInteractionController } from './HangarInteractionController';
+import { DisposableScene } from './DisposableScene';
 import { CloneWarsHangar3D } from '../../game/hangar/CloneWarsHangar3D';
 import { HangarFactory } from '../../game/factories/HangarFactory';
 import {
@@ -16,11 +17,10 @@ import {
 export { CAMERA_PRESETS, SHIP_SKINS };
 export type { CameraTargetPreset, ShipSkinConfig, ShipSkinId };
 
-export class SpaceHangarScene {
+export class SpaceHangarScene extends DisposableScene {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
-  private animFrameId: number | null = null;
 
   // Scene entities
   public shipGroup: THREE.Group;
@@ -67,6 +67,7 @@ export class SpaceHangarScene {
   private clock = new THREE.Clock();
 
   constructor(container: HTMLElement) {
+    super();
     const width = container.clientWidth || 900;
     const height = container.clientHeight || 600;
 
@@ -898,7 +899,7 @@ export class SpaceHangarScene {
   private mouseX = 0;
   private mouseY = 0;
 
-  private onResize = () => {
+  protected readonly onResize = () => {
     const container = this.renderer.domElement.parentElement;
     if (!container) return;
     const width = container.clientWidth;
@@ -1072,29 +1073,9 @@ export class SpaceHangarScene {
     this.animFrameId = requestAnimationFrame(this.animate);
   };
 
-  public dispose() {
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
-    }
+  protected releaseResources(): void {
     this.interactionController?.dispose();
     this.interactionController = null;
-    window.removeEventListener('resize', this.onResize);
     this.hangar3D?.dispose();
-
-    this.scene.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        obj.geometry?.dispose();
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach((m) => m.dispose());
-        } else {
-          obj.material?.dispose();
-        }
-      }
-    });
-
-    this.renderer.dispose();
-    if (this.renderer.domElement.parentElement) {
-      this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
-    }
   }
 }

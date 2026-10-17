@@ -7,6 +7,9 @@ import { ShipSkinId } from './SpaceHangarScene';
 import { Spaceship3D } from './Spaceship3D';
 import { CombatEntityFactory } from './CombatEntityFactory';
 import { CombatTargetProjector } from './CombatTargetProjector';
+import { DisposableScene } from './DisposableScene';
+import { EntityViewSync } from './EntityViewSync';
+import { TimedEffectPool, type TimedEffect } from './TimedEffectPool';
 import { CAMERA_VIEW_STRATEGIES, COMBAT_SKIN_PALETTES } from './combatSceneTypes';
 import type { CameraViewMode, CombatSceneSource, ProjectedTarget } from './combatSceneTypes';
 import type { SupportedLocale } from '../../config/content/locales';
@@ -15,14 +18,38 @@ import { localizeHitNotice } from '../../game/combatText';
 
 export type { CameraViewMode, ProjectedTarget } from './combatSceneTypes';
 
-export class SpaceCombat3DScene {
+interface DebrisEffect extends TimedEffect {
+  vx: number;
+  vy: number;
+  vz: number;
+  rotX: number;
+  rotY: number;
+}
+
+interface SparkEffect extends TimedEffect {
+  vx: number;
+  vy: number;
+  vz: number;
+}
+
+interface SmokeEffect extends SparkEffect {
+  rotX: number;
+  rotY: number;
+  scaleRate: number;
+  initialOpacity: number;
+}
+
+interface ShockwaveEffect extends TimedEffect {
+  growthRate: number;
+}
+
+export class SpaceCombat3DScene extends DisposableScene {
   private locale: SupportedLocale = DEFAULT_LOCALE;
   private container: HTMLElement;
-  private renderer: THREE.WebGLRenderer;
-  private scene: THREE.Scene;
+  protected renderer: THREE.WebGLRenderer;
+  protected scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private clock: THREE.Clock;
-  private animFrameId: number | null = null;
 
   // Camera settings
   public viewMode: CameraViewMode = 'CHASE_3D';
@@ -64,36 +91,13 @@ export class SpaceCombat3DScene {
   private p2Recoil = new THREE.Vector3();
 
   // Active Dynamic Sparks
-  private damageSparkMeshes: {
-    mesh: THREE.Mesh;
-    vx: number;
-    vy: number;
-    vz: number;
-    life: number;
-    maxLife: number;
-  }[] = [];
+  private damageSparks!: TimedEffectPool<SparkEffect>;
 
   // Active Dynamic Engine / Hull Smoke
-  private damageSmokeMeshes: {
-    mesh: THREE.Mesh;
-    vx: number;
-    vy: number;
-    vz: number;
-    rotX: number;
-    rotY: number;
-    scaleRate: number;
-    life: number;
-    maxLife: number;
-    initialOpacity: number;
-  }[] = [];
+  private damageSmoke!: TimedEffectPool<SmokeEffect>;
 
   // Shockwave Rings (e.g. Shield Break or Hit Ripple)
-  private shockwaveRings: {
-    mesh: THREE.Mesh;
-    growthRate: number;
-    life: number;
-    maxLife: number;
-  }[] = [];
+  private shockwaves!: TimedEffectPool<ShockwaveEffect>;
 
   // In-World 3D Holographic Health Bars attached directly to ships
   private p1HealthBarCanvas!: HTMLCanvasElement;
@@ -122,25 +126,16 @@ export class SpaceCombat3DScene {
   private asteroidGroup: THREE.Group;
 
   // Pools / Meshes for dynamic entities
-  private enemyMeshMap = new Map<Enemy, THREE.Group>();
-  private bulletMeshMap = new Map<Bullet, THREE.Mesh>();
-  private bombMeshMap = new Map<Bomb, THREE.Group>();
-  private powerUpMeshMap = new Map<PowerUp, THREE.Group>();
+  private enemyViews!: EntityViewSync<Enemy, THREE.Group, number>;
+  private bulletViews!: EntityViewSync<Bullet, THREE.Mesh, number>;
+  private bombViews!: EntityViewSync<Bomb, THREE.Group, number>;
+  private powerUpViews!: EntityViewSync<PowerUp, THREE.Group, number>;
   private readonly entityFactory: CombatEntityFactory;
   private readonly targetProjector = new CombatTargetProjector();
 
   // Debris & Particle system
   private particleMeshGroup: THREE.Group;
-  private debrisMeshes: {
-    mesh: THREE.Mesh;
-    vx: number;
-    vy: number;
-    vz: number;
-    rotX: number;
-    rotY: number;
-    life: number;
-    maxLife: number;
-  }[] = [];
+  private debris!: TimedEffectPool<DebrisEffect>;
 
   // Lighting
   private ambientLight: THREE.AmbientLight;
@@ -165,6 +160,7 @@ export class SpaceCombat3DScene {
     initialSkin: ShipSkinId = 'titanium',
     entityFactory = new CombatEntityFactory(),
   ) {
+    super();
     this.container = container;
     this.activeSkinId = initialSkin;
     this.entityFactory = entityFactory;
@@ -286,6 +282,8 @@ export class SpaceCombat3DScene {
     // 7. Particle / Debris Group
     this.particleMeshGroup = new THREE.Group();
     this.scene.add(this.particleMeshGroup);
+    this.createEffectPools();
+    this.createEntityViews();
 
     // Apply initial skin
     this.setShipSkin(this.activeSkinId);
@@ -533,7 +531,7 @@ export class SpaceCombat3DScene {
       const life = 0.2 + Math.random() * 0.35;
 
       this.scene.add(mesh);
-      this.damageSparkMeshes.push({
+      this.damageSparks.add({
         mesh,
         vx,
         vy,
@@ -573,7 +571,7 @@ export class SpaceCombat3DScene {
     const life = 0.5 + Math.random() * 0.45;
 
     this.scene.add(mesh);
-    this.damageSmokeMeshes.push({
+    this.damageSmoke.add({
       mesh,
       vx,
       vy,
@@ -603,7 +601,7 @@ export class SpaceCombat3DScene {
     mesh.rotation.x = -Math.PI * 0.3;
 
     this.scene.add(mesh);
-    this.shockwaveRings.push({
+    this.shockwaves.add({
       mesh,
       growthRate: 14.0,
       life: 0.4,
@@ -1272,154 +1270,24 @@ export class SpaceCombat3DScene {
       this.camera.lookAt(this.currentLookAt);
     }
 
-    // 9. Sync Enemies
-    const activeEnemies = new Set(engine.enemies);
-    for (const [enemy, group] of this.enemyMeshMap.entries()) {
-      if (!activeEnemies.has(enemy)) {
-        // Spawn 3D debris explosion
-        for (let k = 0; k < 14; k++) {
-          const debGeom = new THREE.DodecahedronGeometry(0.18 + Math.random() * 0.2, 0);
-          const debMat = new THREE.MeshBasicMaterial({
-            color: enemy.type === EnemyType.ELITE ? 0xec4899 : 0xf59e0b,
-            transparent: true,
-          });
-          const deb = new THREE.Mesh(debGeom, debMat);
-          deb.position.copy(group.position);
-          this.particleMeshGroup.add(deb);
-          this.debrisMeshes.push({
-            mesh: deb,
-            vx: (Math.random() - 0.5) * 16,
-            vy: (Math.random() - 0.5) * 12,
-            vz: (Math.random() - 0.5) * 16,
-            rotX: (Math.random() - 0.5) * 0.2,
-            rotY: (Math.random() - 0.5) * 0.2,
-            life: 0.8,
-            maxLife: 0.8,
-          });
-        }
-
-        this.scene.remove(group);
-        this.enemyMeshMap.delete(enemy);
-      }
-    }
-
-    for (const enemy of engine.enemies) {
-      let group = this.enemyMeshMap.get(enemy);
-      if (!group) {
-        group = this.entityFactory.createEnemy(enemy.type);
-        this.scene.add(group);
-        this.enemyMeshMap.set(enemy, group);
-      }
-
-      const pos = this.map2Dto3D(enemy.x + 16, enemy.y + 16);
-      group.position.set(pos.x, 0, pos.z);
-
-      // Diving swoop animation
-      if (enemy.diving) {
-        group.rotation.x = Math.PI * 0.25;
-        group.rotation.z = Math.sin(time * 6) * 0.4;
-      } else {
-        group.rotation.x = 0;
-        group.rotation.z = Math.sin(time * 3 + enemy.x) * 0.12;
-      }
-    }
-
-    // 10. Sync Bullets
-    const activeBullets = new Set(engine.bullets);
-    for (const [bullet, mesh] of this.bulletMeshMap.entries()) {
-      if (!activeBullets.has(bullet)) {
-        this.scene.remove(mesh);
-        mesh.geometry?.dispose();
-        this.bulletMeshMap.delete(bullet);
-      }
-    }
-
-    for (const bullet of engine.bullets) {
-      let mesh = this.bulletMeshMap.get(bullet);
-      if (!mesh) {
-        let colorHex = 0x38bdf8;
-        if (!bullet.isFromPlayer) colorHex = 0xef4444;
-        else if (bullet.color === '#fbbf24') colorHex = 0xfbbf24;
-        else if (bullet.color === '#c084fc') colorHex = 0xc084fc;
-
-        mesh = this.entityFactory.createBullet(colorHex, bullet.isFromPlayer);
-        this.scene.add(mesh);
-        this.bulletMeshMap.set(bullet, mesh);
-      }
-
-      const pos = this.map2Dto3D(bullet.x, bullet.y);
-      mesh.position.set(pos.x, 0, pos.z);
-    }
-
-    // 11. Sync Bombs
-    const activeBombs = new Set(engine.bombs);
-    for (const [bomb, group] of this.bombMeshMap.entries()) {
-      if (!activeBombs.has(bomb)) {
-        this.scene.remove(group);
-        this.bombMeshMap.delete(bomb);
-      }
-    }
-
-    for (const bomb of engine.bombs) {
-      let group = this.bombMeshMap.get(bomb);
-      if (!group) {
-        group = this.entityFactory.createBomb();
-        this.scene.add(group);
-        this.bombMeshMap.set(bomb, group);
-      }
-
-      const pos = this.map2Dto3D(bomb.x + 12, bomb.y + 12);
-      group.position.set(pos.x, 0, pos.z);
-      group.rotation.x = time * 3;
-      group.rotation.y = time * 2;
-    }
-
-    // 12. Sync Power-Ups
-    const activePowerUps = new Set(engine.powerUps);
-    for (const [powerUp, group] of this.powerUpMeshMap.entries()) {
-      if (!activePowerUps.has(powerUp)) {
-        this.scene.remove(group);
-        this.powerUpMeshMap.delete(powerUp);
-      }
-    }
-
-    for (const powerUp of engine.powerUps) {
-      let group = this.powerUpMeshMap.get(powerUp);
-      if (!group) {
-        group = this.entityFactory.createPowerUp(powerUp.type);
-        this.scene.add(group);
-        this.powerUpMeshMap.set(powerUp, group);
-      }
-
-      const pos = this.map2Dto3D(powerUp.x + 13, powerUp.y + 13);
-      group.position.set(pos.x, Math.sin(time * 3 + powerUp.bobAngle) * 0.35, pos.z);
-      group.rotation.y = time * 2.5;
-    }
+    // 9-12. Sync enemies, bullets, bombs and power-ups
+    this.enemyViews.sync(engine.enemies, time);
+    this.bulletViews.sync(engine.bullets, time);
+    this.bombViews.sync(engine.bombs, time);
+    this.powerUpViews.sync(engine.powerUps, time);
 
     // 13. Update 3D Debris & Exploding Fragments
-    for (let i = this.debrisMeshes.length - 1; i >= 0; i--) {
-      const d = this.debrisMeshes[i];
-      d.life -= delta;
+    this.debris.update(delta, (d) => {
       d.mesh.position.x += d.vx * delta;
       d.mesh.position.y += d.vy * delta;
       d.mesh.position.z += d.vz * delta;
       d.mesh.rotation.x += d.rotX;
       d.mesh.rotation.y += d.rotY;
-
-      const alpha = Math.max(0, d.life / d.maxLife);
-      (d.mesh.material as THREE.MeshBasicMaterial).opacity = alpha;
-
-      if (d.life <= 0) {
-        this.particleMeshGroup.remove(d.mesh);
-        d.mesh.geometry?.dispose();
-        this.debrisMeshes.splice(i, 1);
-      }
-    }
+      (d.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, d.life / d.maxLife);
+    });
 
     // 14. Update Active Dynamic Damage Sparks
-    for (let i = this.damageSparkMeshes.length - 1; i >= 0; i--) {
-      const s = this.damageSparkMeshes[i];
-      s.life -= delta;
+    this.damageSparks.update(delta, (s) => {
       s.mesh.position.x += s.vx * delta;
       s.mesh.position.y += s.vy * delta;
       s.mesh.position.z += s.vz * delta;
@@ -1428,18 +1296,10 @@ export class SpaceCombat3DScene {
       const scale = Math.max(0.01, s.life / s.maxLife);
       s.mesh.scale.set(scale, scale, scale * 1.8);
       (s.mesh.material as THREE.MeshBasicMaterial).opacity = Math.min(1.0, s.life / (s.maxLife * 0.6));
-      if (s.life <= 0) {
-        this.scene.remove(s.mesh);
-        s.mesh.geometry.dispose();
-        (s.mesh.material as THREE.Material).dispose();
-        this.damageSparkMeshes.splice(i, 1);
-      }
-    }
+    });
 
     // 15. Update Active Volumetric Damage Smoke
-    for (let i = this.damageSmokeMeshes.length - 1; i >= 0; i--) {
-      const sm = this.damageSmokeMeshes[i];
-      sm.life -= delta;
+    this.damageSmoke.update(delta, (sm) => {
       sm.mesh.position.x += sm.vx * delta;
       sm.mesh.position.y += sm.vy * delta;
       sm.mesh.position.z += sm.vz * delta;
@@ -1449,31 +1309,16 @@ export class SpaceCombat3DScene {
       const curScale = 1.0 + progress * sm.scaleRate;
       sm.mesh.scale.set(curScale, curScale, curScale);
       (sm.mesh.material as THREE.MeshBasicMaterial).opacity = sm.initialOpacity * (1 - progress);
-      if (sm.life <= 0) {
-        this.scene.remove(sm.mesh);
-        sm.mesh.geometry.dispose();
-        (sm.mesh.material as THREE.Material).dispose();
-        this.damageSmokeMeshes.splice(i, 1);
-      }
-    }
+    });
 
     // 16. Update Shockwave Rings (Shield Breaks & Explosive Rifts)
-    for (let i = this.shockwaveRings.length - 1; i >= 0; i--) {
-      const sw = this.shockwaveRings[i];
-      sw.life -= delta;
+    this.shockwaves.update(delta, (sw) => {
       const growth = sw.growthRate * delta;
       sw.mesh.scale.x += growth;
       sw.mesh.scale.y += growth;
       const progress = 1 - Math.max(0, sw.life / sw.maxLife);
       (sw.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 1 - progress);
-      if (sw.life <= 0) {
-        this.scene.remove(sw.mesh);
-        sw.mesh.geometry.dispose();
-        (sw.mesh.material as THREE.Material).dispose();
-        this.shockwaveRings.splice(i, 1);
-      }
-    }
-
+    });
     // 17. Cosmic Environment gentle rotation
     this.planetGroup.rotation.y = time * 0.008;
     this.starfield.rotation.y = time * 0.004;
@@ -1487,7 +1332,7 @@ export class SpaceCombat3DScene {
     }
   }
 
-  private onResize = () => {
+  protected readonly onResize = () => {
     if (!this.container) return;
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
@@ -1511,53 +1356,98 @@ export class SpaceCombat3DScene {
     });
   }
 
-  public dispose() {
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
-    }
-    window.removeEventListener('resize', this.onResize);
-
-    // Dispose active sparks
-    for (const s of this.damageSparkMeshes) {
-      this.scene.remove(s.mesh);
-      s.mesh.geometry.dispose();
-      (s.mesh.material as THREE.Material).dispose();
-    }
-    this.damageSparkMeshes = [];
-
-    // Dispose active smoke
-    for (const sm of this.damageSmokeMeshes) {
-      this.scene.remove(sm.mesh);
-      sm.mesh.geometry.dispose();
-      (sm.mesh.material as THREE.Material).dispose();
-    }
-    this.damageSmokeMeshes = [];
-
-    // Dispose shockwaves
-    for (const sw of this.shockwaveRings) {
-      this.scene.remove(sw.mesh);
-      sw.mesh.geometry.dispose();
-      (sw.mesh.material as THREE.Material).dispose();
-    }
-    this.shockwaveRings = [];
+  protected releaseResources(): void {
+    this.damageSparks.clear();
+    this.damageSmoke.clear();
+    this.shockwaves.clear();
+    this.debris.clear();
+    [this.enemyViews, this.bulletViews, this.bombViews, this.powerUpViews].forEach((v) => v.dispose());
 
     this.p1HealthBarTexture?.dispose();
     this.p2HealthBarTexture?.dispose();
+  }
 
-    this.scene.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        obj.geometry?.dispose();
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach((m) => m.dispose());
+  private createEffectPools(): void {
+    this.damageSparks = new TimedEffectPool<SparkEffect>(this.scene);
+    this.damageSmoke = new TimedEffectPool<SmokeEffect>(this.scene);
+    this.shockwaves = new TimedEffectPool<ShockwaveEffect>(this.scene);
+    this.debris = new TimedEffectPool<DebrisEffect>(this.particleMeshGroup);
+  }
+
+  private createEntityViews(): void {
+    this.enemyViews = new EntityViewSync<Enemy, THREE.Group, number>(this.scene, {
+      create: (enemy) => this.entityFactory.createEnemy(enemy.type),
+      update: (enemy, group, time) => {
+        const pos = this.map2Dto3D(enemy.x + 16, enemy.y + 16);
+        group.position.set(pos.x, 0, pos.z);
+
+        // Diving swoop animation
+        if (enemy.diving) {
+          group.rotation.x = Math.PI * 0.25;
+          group.rotation.z = Math.sin(time * 6) * 0.4;
         } else {
-          obj.material?.dispose();
+          group.rotation.x = 0;
+          group.rotation.z = Math.sin(time * 3 + enemy.x) * 0.12;
         }
-      }
+      },
+      onRemove: (enemy, group) => this.spawnEnemyDebris(enemy, group.position),
     });
 
-    this.renderer.dispose();
-    if (this.renderer.domElement.parentElement) {
-      this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
+    this.bulletViews = new EntityViewSync<Bullet, THREE.Mesh, number>(this.scene, {
+      create: (bullet) => {
+        let colorHex = 0x38bdf8;
+        if (!bullet.isFromPlayer) colorHex = 0xef4444;
+        else if (bullet.color === '#fbbf24') colorHex = 0xfbbf24;
+        else if (bullet.color === '#c084fc') colorHex = 0xc084fc;
+        return this.entityFactory.createBullet(colorHex, bullet.isFromPlayer);
+      },
+      update: (bullet, mesh) => {
+        const pos = this.map2Dto3D(bullet.x, bullet.y);
+        mesh.position.set(pos.x, 0, pos.z);
+      },
+      onRemove: (_bullet, mesh) => mesh.geometry?.dispose(),
+    });
+
+    this.bombViews = new EntityViewSync<Bomb, THREE.Group, number>(this.scene, {
+      create: () => this.entityFactory.createBomb(),
+      update: (bomb, group, time) => {
+        const pos = this.map2Dto3D(bomb.x + 12, bomb.y + 12);
+        group.position.set(pos.x, 0, pos.z);
+        group.rotation.x = time * 3;
+        group.rotation.y = time * 2;
+      },
+    });
+
+    this.powerUpViews = new EntityViewSync<PowerUp, THREE.Group, number>(this.scene, {
+      create: (powerUp) => this.entityFactory.createPowerUp(powerUp.type),
+      update: (powerUp, group, time) => {
+        const pos = this.map2Dto3D(powerUp.x + 13, powerUp.y + 13);
+        group.position.set(pos.x, Math.sin(time * 3 + powerUp.bobAngle) * 0.35, pos.z);
+        group.rotation.y = time * 2.5;
+      },
+    });
+  }
+
+  private spawnEnemyDebris(enemy: Enemy, origin: THREE.Vector3): void {
+    for (let k = 0; k < 14; k++) {
+      const debGeom = new THREE.DodecahedronGeometry(0.18 + Math.random() * 0.2, 0);
+      const debMat = new THREE.MeshBasicMaterial({
+        color: enemy.type === EnemyType.ELITE ? 0xec4899 : 0xf59e0b,
+        transparent: true,
+      });
+      const deb = new THREE.Mesh(debGeom, debMat);
+      deb.position.copy(origin);
+      this.particleMeshGroup.add(deb);
+      this.debris.add({
+        mesh: deb,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.5) * 12,
+        vz: (Math.random() - 0.5) * 16,
+        rotX: (Math.random() - 0.5) * 0.2,
+        rotY: (Math.random() - 0.5) * 0.2,
+        life: 0.8,
+        maxLife: 0.8,
+      });
     }
   }
 }
