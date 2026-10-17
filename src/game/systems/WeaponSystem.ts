@@ -1,11 +1,14 @@
 import { SoundType, WeaponMode } from '../../types/game';
-import { soundEngine } from '../../audio/soundEngine';
 import { Bullet, PlayerState } from '../entities/GameEntities';
+import { GameAudioService } from '../audio/GameAudioService';
+import type { IGameAudio } from '../audio/IGameAudio';
 
 export class WeaponSystem {
     public fireCooldown = 0;
     public secondPlayerFireCooldown = 0;
     private laserSoundTimer = 0;
+
+    constructor(private readonly audio: IGameAudio = new GameAudioService()) {}
 
     public setWeaponMode(player: PlayerState, mode: WeaponMode): boolean {
         if (player.unlockedWeaponModes.includes(mode)) {
@@ -24,7 +27,7 @@ export class WeaponSystem {
         const nextIdx = (currIdx + direction + modes.length) % modes.length;
         player.weaponMode = modes[nextIdx];
         player.isLaserActive = false;
-        soundEngine.playSound(SoundType.SHOOT);
+        this.audio.playSound(SoundType.SHOOT);
         return true;
     }
 
@@ -37,7 +40,7 @@ export class WeaponSystem {
                 player.weaponEnergy = Math.max(0, player.weaponEnergy - 0.4);
                 this.laserSoundTimer++;
                 if (this.laserSoundTimer % 7 === 0) {
-                    soundEngine.playSound(SoundType.LASER);
+                    this.audio.playSound(SoundType.LASER);
                 }
             } else {
                 player.isLaserActive = false;
@@ -65,7 +68,7 @@ export class WeaponSystem {
     }
 
     private spawnStandardBlaster(p: PlayerState, bullets: Bullet[]): number {
-        soundEngine.playSound(SoundType.SHOOT);
+        this.audio.playSound(SoundType.SHOOT);
         const lvl = p.weaponLevel;
 
         if (lvl === 1) {
@@ -129,7 +132,7 @@ export class WeaponSystem {
     }
 
     private spawnTripleShot(p: PlayerState, bullets: Bullet[]): number {
-        soundEngine.playSound(SoundType.TRIPLE_SHOT);
+        this.audio.playSound(SoundType.TRIPLE_SHOT);
         const cx = p.x + p.width / 2;
         const cy = p.y;
 
@@ -190,7 +193,7 @@ export class WeaponSystem {
     }
 
     private spawnPlasmaSpread(p: PlayerState, bullets: Bullet[]): number {
-        soundEngine.playSound(SoundType.TRIPLE_SHOT);
+        this.audio.playSound(SoundType.TRIPLE_SHOT);
         const cx = p.x + p.width / 2;
         const cy = p.y;
         const angles = [-5.2, -2.6, 0, 2.6, 5.2];

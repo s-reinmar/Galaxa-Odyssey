@@ -5,8 +5,8 @@ import {
     UpgradeOption,
     GameEngineSnapshot,
 } from '../types/game';
-import { soundEngine } from '../audio/soundEngine';
 import { AchievementProgress } from '../types/achievements';
+import { GameAudioService } from './audio/GameAudioService';
 import { InputManager } from './input/InputManager';
 import { StorageService } from './persistence/StorageService';
 import { AchievementManager, ActiveAchievementToast } from './systems/AchievementManager';
@@ -83,13 +83,14 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
 
     // Podsystemy domenowe (SRP)
     private readonly _inputManager = new InputManager();
+    private readonly _audioService = new GameAudioService();
     private readonly _achievementManager: AchievementManager;
     private readonly _particleSystem = new ParticleSystem();
-    private readonly _weaponSystem = new WeaponSystem();
+    private readonly _weaponSystem = new WeaponSystem(this._audioService);
     private readonly _waveSystem = new WaveSystem();
     private readonly _collisionSystem = new CollisionSystem();
-    private readonly _collisionOutcomeHandler = new CollisionOutcomeHandler();
-    private readonly _upgradeSystem = new UpgradeSystem();
+    private readonly _collisionOutcomeHandler = new CollisionOutcomeHandler(this._audioService);
+    private readonly _upgradeSystem = new UpgradeSystem(this._audioService);
     private readonly _playerController = new PlayerController(this._inputManager);
 
     private onStateChange?: () => void;
@@ -102,7 +103,8 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
             (rewardCredits: number) => {
                 this._credits += rewardCredits;
                 this.saveProfile();
-            }
+            },
+            this._audioService
         );
 
         this.loadProfile();
@@ -221,7 +223,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     }
     public set soundEnabled(value: boolean) {
         this._soundEnabled = value;
-        soundEngine.setSoundEnabled(value);
+        this._audioService.setEnabled(value);
     }
 
     public get particlesEnabled(): boolean {
@@ -245,9 +247,9 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
 
     public toggleAudio(): boolean {
         this._soundEnabled = !this._soundEnabled;
-        soundEngine.setSoundEnabled(this._soundEnabled);
+        this._audioService.setEnabled(this._soundEnabled);
         if (this._soundEnabled && this._gameState === GameState.MENU) {
-            soundEngine.startMenuMusic();
+            this._audioService.startMenuMusic();
         }
         this.saveProfile();
         this.notifyChange();
@@ -256,7 +258,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
 
     public setAudioEnabled(enabled: boolean): void {
         this._soundEnabled = enabled;
-        soundEngine.setSoundEnabled(enabled);
+        this._audioService.setEnabled(enabled);
         this.saveProfile();
         this.notifyChange();
     }
@@ -348,7 +350,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
         this._gameState = GameState.PLAYING;
         this.clearEntities();
         this.spawnNextWave();
-        soundEngine.stopMenuMusic();
+        this._audioService.stopMenuMusic();
         this.notifyChange();
         return true;
     }
@@ -397,7 +399,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
 
         this._gameState = GameState.PLAYING;
         this.spawnNextWave();
-        soundEngine.stopMenuMusic();
+        this._audioService.stopMenuMusic();
         this.notifyChange();
     }
 
@@ -536,7 +538,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
         }
         this._gameState = GameState.MENU;
         if (this._soundEnabled) {
-            soundEngine.startMenuMusic();
+            this._audioService.startMenuMusic();
         }
         this.notifyChange();
     }

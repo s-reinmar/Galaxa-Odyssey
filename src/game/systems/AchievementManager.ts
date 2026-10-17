@@ -1,7 +1,9 @@
-import { ACHIEVEMENTS, AchievementProgress } from '../../types/achievements';
+import { AchievementProgress } from '../../types/achievements';
 import { SoundType } from '../../types/game';
-import { soundEngine } from '../../audio/soundEngine';
+import { GameAudioService } from '../audio/GameAudioService';
+import type { IGameAudio } from '../audio/IGameAudio';
 import { StorageService } from '../persistence/StorageService';
+import { AchievementProgressService } from './AchievementProgressService';
 
 export interface ActiveAchievementToast {
     id: string;
@@ -12,7 +14,7 @@ export interface ActiveAchievementToast {
 }
 
 export class AchievementManager {
-    public achievements: Record<string, AchievementProgress> = {};
+    private readonly progress = new AchievementProgressService();
     public activeToast: ActiveAchievementToast | null = null;
     private toastTimeout: ReturnType<typeof setTimeout> | number | null = null;
     private _isOpen = false;
@@ -22,11 +24,20 @@ export class AchievementManager {
 
     constructor(
         onStateChange?: () => void,
-        onCreditsReward?: (credits: number) => void
+        onCreditsReward?: (credits: number) => void,
+        private readonly audio: IGameAudio = new GameAudioService()
     ) {
         this.onStateChange = onStateChange;
         this.onCreditsReward = onCreditsReward;
         this.load();
+    }
+
+    public get achievements(): Record<string, AchievementProgress> {
+        return this.progress.achievements;
+    }
+
+    public set achievements(value: Record<string, AchievementProgress>) {
+        this.progress.achievements = value;
     }
 
     public get isOpen(): boolean {
@@ -50,14 +61,7 @@ export class AchievementManager {
 
     public load(): void {
         this.achievements = StorageService.loadAchievements(this.achievements);
-        for (const ach of ACHIEVEMENTS) {
-            if (!this.achievements[ach.id]) {
-                this.achievements[ach.id] = {
-                    unlocked: false,
-                    currentProgress: 0,
-                };
-            }
-        }
+        this.progress.initialize();
     }
 
     public save(): void {
@@ -65,34 +69,24 @@ export class AchievementManager {
     }
 
     public isUnlocked(id: string): boolean {
-        return !!this.achievements[id]?.unlocked;
+        return this.progress.isUnlocked(id);
     }
 
     public getProgress(id: string): number {
-        return this.achievements[id]?.currentProgress ?? 0;
+        return this.progress.getProgress(id);
     }
 
     public getUnlockedCount(): number {
-        return ACHIEVEMENTS.filter((a) => this.isUnlocked(a.id)).length;
+        return this.progress.getUnlockedCount();
     }
 
     public getTotalCount(): number {
-        return ACHIEVEMENTS.length;
+        return this.progress.getTotalCount();
     }
 
     public unlock(id: string): void {
-        const ach = ACHIEVEMENTS.find((a) => a.id === id);
+        const ach = this.progress.unlock(id);
         if (!ach) return;
-
-        if (!this.achievements[id]) {
-            this.achievements[id] = { unlocked: false, currentProgress: 0 };
-        }
-
-        if (this.achievements[id].unlocked) return;
-
-        this.achievements[id].unlocked = true;
-        this.achievements[id].unlockedAt = Date.now();
-        this.achievements[id].currentProgress = ach.maxProgress;
 
         this.onCreditsReward?.(ach.rewardCredits);
 
@@ -113,28 +107,17 @@ export class AchievementManager {
             this.notify();
         }, 4500);
 
-        soundEngine.playSound(SoundType.POWER_UP);
+        this.audio.playSound(SoundType.POWER_UP);
 
         this.save();
         this.notify();
     }
 
     public increment(id: string, amount = 1): void {
-        const ach = ACHIEVEMENTS.find((a) => a.id === id);
-        if (!ach) return;
-
-        if (!this.achievements[id]) {
-            this.achievements[id] = { unlocked: false, currentProgress: 0 };
-        }
-
-        if (this.achievements[id].unlocked) return;
-
-        const newProg = (this.achievements[id].currentProgress || 0) + amount;
-        this.achievements[id].currentProgress = Math.min(ach.maxProgress, newProg);
-
-        if (this.achievements[id].currentProgress >= ach.maxProgress) {
+        const result = this.progress.increment(id, amount);
+        if (result === 'completed') {
             this.unlock(id);
-        } else {
+        } else if (result === 'changed') {
             this.save();
         }
     }

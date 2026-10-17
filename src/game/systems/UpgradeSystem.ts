@@ -1,6 +1,7 @@
 import { SoundType, UpgradeOption, UPGRADE_CONFIGS } from '../../types/game';
-import { soundEngine } from '../../audio/soundEngine';
 import { PlayerState } from '../entities/GameEntities';
+import { GameAudioService } from '../audio/GameAudioService';
+import type { IGameAudio } from '../audio/IGameAudio';
 
 export interface IUpgradeContext {
     profileScore: number;
@@ -14,6 +15,8 @@ export interface IUpgradeContext {
 }
 
 export class UpgradeSystem {
+    constructor(private readonly audio: IGameAudio = new GameAudioService()) {}
+
     public buyUpgrade(option: UpgradeOption, ctx: IUpgradeContext): boolean {
         const config = UPGRADE_CONFIGS.find((u) => u.id === option);
         if (!config || ctx.profileScore < config.cost) return false;
@@ -45,7 +48,7 @@ export class UpgradeSystem {
         }
 
         ctx.saveProfile();
-        soundEngine.playSound(SoundType.POWER_UP);
+        this.audio.playSound(SoundType.POWER_UP);
         ctx.notifyChange();
         return true;
     }

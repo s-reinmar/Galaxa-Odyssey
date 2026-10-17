@@ -1,4 +1,5 @@
 import type { GameInputActions, PlayerInputState, VirtualButtonAction } from '../../types/input';
+import KeyboardInput from './KeyboardInput';
 
 export class InputManager {
     private virtualP1 = {
@@ -28,56 +29,21 @@ export class InputManager {
     private onAchievementsToggle?: () => void;
     private onFireStart?: (pIdx: number) => void;
     private onFireEnd?: (pIdx: number) => void;
-
-    private handleKeyDown = (e: KeyboardEvent) => {
-        this.keys[e.key.toLowerCase()] = true;
-        this.keys[e.code] = true;
-
-        if (e.key === 'q' || e.key === 'Q') {
-            this.onWeaponCycle?.(-1);
-        } else if (e.key === 'e' || e.key === 'E') {
-            this.onWeaponCycle?.(1);
-        }
-
-        if (e.key === '1') this.onWeaponSelect?.(0);
-        if (e.key === '2') this.onWeaponSelect?.(1);
-        if (e.key === '3') this.onWeaponSelect?.(2);
-        if (e.key === '4') this.onWeaponSelect?.(3);
-
-        if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-            this.onPauseToggle?.();
-        }
-
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            this.onAchievementsToggle?.();
-        }
-
-        if (e.code === 'Space') {
-            this.onFireStart?.(1);
-        }
-        if (e.code === 'Numpad0' || e.code === 'Enter') {
-            this.onFireStart?.(2);
-        }
-    };
-
-    private handleKeyUp = (e: KeyboardEvent) => {
-        this.keys[e.key.toLowerCase()] = false;
-        this.keys[e.code] = false;
-
-        if (e.code === 'Space') {
-            this.onFireEnd?.(1);
-        }
-        if (e.code === 'Numpad0' || e.code === 'Enter') {
-            this.onFireEnd?.(2);
-        }
-    };
+    private readonly keyboard: KeyboardInput;
 
     constructor() {
-        if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-            window.addEventListener('keydown', this.handleKeyDown);
-            window.addEventListener('keyup', this.handleKeyUp);
-        }
+        this.keyboard = new KeyboardInput({
+            onKeyChange: (key, code, pressed) => {
+                this.keys[key] = pressed;
+                this.keys[code] = pressed;
+            },
+            onWeaponCycle: (dir) => this.onWeaponCycle?.(dir),
+            onWeaponSelect: (modeIdx) => this.onWeaponSelect?.(modeIdx),
+            onPauseToggle: () => this.onPauseToggle?.(),
+            onAchievementsToggle: () => this.onAchievementsToggle?.(),
+            onFireStart: (pIdx) => this.onFireStart?.(pIdx),
+            onFireEnd: (pIdx) => this.onFireEnd?.(pIdx),
+        });
     }
 
     public setOnWeaponCycle(cb: (dir: 1 | -1) => void) {
@@ -243,9 +209,6 @@ export class InputManager {
     }
 
     public dispose() {
-        if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
-            window.removeEventListener('keydown', this.handleKeyDown);
-            window.removeEventListener('keyup', this.handleKeyUp);
-        }
+        this.keyboard.dispose();
     }
 }
