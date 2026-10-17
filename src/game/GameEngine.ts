@@ -25,6 +25,7 @@ import { ParticleSystem } from './systems/ParticleSystem';
 import { WeaponSystem } from './systems/WeaponSystem';
 import { WaveSystem } from './systems/WaveSystem';
 import { CollisionSystem, ICollisionContext } from './systems/CollisionSystem';
+import { CollisionOutcomeHandler } from './systems/CollisionOutcomeHandler';
 import { UpgradeSystem, IUpgradeContext } from './systems/UpgradeSystem';
 import { PlayerController } from './systems/PlayerController';
 import { InputBindings } from './input/InputBindings';
@@ -87,6 +88,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     private readonly _weaponSystem = new WeaponSystem();
     private readonly _waveSystem = new WaveSystem();
     private readonly _collisionSystem = new CollisionSystem();
+    private readonly _collisionOutcomeHandler = new CollisionOutcomeHandler();
     private readonly _upgradeSystem = new UpgradeSystem();
     private readonly _playerController = new PlayerController(this._inputManager);
 
@@ -491,7 +493,9 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
         this._waveSystem.updatePowerUps(this.powerUps);
 
         // Detekcja kolizji
-        this._collisionSystem.resolveAllCollisions(this);
+        for (const collision of this._collisionSystem.detectAllCollisions(this)) {
+            this._collisionOutcomeHandler.handle(collision, this);
+        }
 
         // Cząsteczki
         this._particleSystem.updateParticles(this._particlesEnabled);
