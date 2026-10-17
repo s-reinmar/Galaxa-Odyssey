@@ -32,7 +32,7 @@ export const MenuPanelHeader: React.FC<MenuPanelHeaderProps> = ({
         }}
         className="text-xs text-slate-400 hover:text-white font-mono transition cursor-pointer"
       >
-        [{t('WSTECZ', 'BACK')}]
+        [{t.menuPanel.back}]
       </button>
     </div>
   );
@@ -50,7 +50,7 @@ export const ReturnToBridgeButton: React.FC<{ onClick: () => void }> = ({ onClic
       }}
       className="w-full py-2 bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs rounded-lg hover:bg-slate-800 transition cursor-pointer"
     >
-      {t('POWRÓT NA MOSTEK', 'RETURN TO BRIDGE')}
+      {t.menuPanel.returnToBridge}
     </button>
   );
 };

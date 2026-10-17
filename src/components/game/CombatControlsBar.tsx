@@ -33,17 +33,17 @@ export const CombatControlsBar: React.FC<CombatControlsBarProps> = ({
                         ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
                         : 'text-slate-400 hover:text-white bg-slate-800/60'
                 }`}
-                title={t('Przełącz Radar 3D (Klawisz R)', 'Toggle 3D Radar (Key R)')}
+                title={t.combatControlsBar.toggle3dRadarKey}
             >
                 <Radar size={11} className={showRadar ? 'text-cyan-400 animate-spin' : ''} style={{ animationDuration: '4s' }} />
                 <span>RADAR [R]</span>
             </button>
             <Separator />
-            <span className="hidden sm:inline">{t('[A/D] lub [←/→] Ruch', '[A/D] or [←/→] Move')}</span>
+            <span className="hidden sm:inline">{t.combatControlsBar.aDOrMove}</span>
             <Separator />
-            <span className="hidden sm:inline">{t('[SPACJA] Ogień', '[SPACE] Fire')}</span>
+            <span className="hidden sm:inline">{t.combatControlsBar.spaceFire}</span>
             <Separator />
-            <span className="hidden sm:inline">{t('[1-4] Broń', '[1-4] Weapon')}</span>
+            <span className="hidden sm:inline">{t.combatControlsBar.n14Weapon}</span>
             <Separator />
             <button
                 type="button"
@@ -53,10 +53,10 @@ export const CombatControlsBar: React.FC<CombatControlsBarProps> = ({
                         ? 'bg-amber-950 text-amber-300 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
                         : 'text-slate-400 hover:text-white bg-slate-800/60'
                 }`}
-                title={t('Przełącz Perspektywę (Klawisz V)', 'Toggle Perspective (Key V)')}
+                title={t.combatControlsBar.togglePerspectiveKeyV}
             >
                 <Camera size={11} />
-                <span>{viewMode === 'COCKPIT_3D' ? t('KOKPIT', 'COCKPIT') : 'TPP'} [V]</span>
+                <span>{viewMode === 'COCKPIT_3D' ? t.combatControlsBar.cockpit : 'TPP'} [V]</span>
             </button>
             {onToggleFullscreen && (
                 <>
@@ -65,10 +65,10 @@ export const CombatControlsBar: React.FC<CombatControlsBarProps> = ({
                         type="button"
                         onClick={onToggleFullscreen}
                         className="flex items-center gap-1 font-bold px-1.5 py-0.5 rounded text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 transition"
-                        title={t('Przełącz Pełny Ekran [F]', 'Toggle Fullscreen [F]')}
+                        title={t.combatControlsBar.toggleFullscreenF}
                     >
                         {isFullscreen ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
-                        <span className="hidden md:inline">{isFullscreen ? t('OKNO', 'WINDOW') : t('PEŁNY EKRAN', 'FULLSCREEN')} [F]</span>
+                        <span className="hidden md:inline">{isFullscreen ? t.combatControlsBar.window : t.combatControlsBar.fullscreen} [F]</span>
                     </button>
                 </>
             )}

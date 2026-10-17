@@ -7,24 +7,21 @@ export const AppFooter: React.FC = () => {
   return (
     <footer className="w-full shrink-0 py-1.5 px-3 sm:px-5 text-center text-[11px] text-slate-400 bg-slate-900/80 backdrop-blur border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 z-30">
       <div className="flex items-center gap-2">
-        <span className="text-cyan-400 font-mono font-semibold">{t('Sterowanie 3D:', '3D Controls:')}</span>
-        <span>{t('Gracz 1: ← / → + Spacja', 'Player 1: ← / → + Space')}</span>
+        <span className="text-cyan-400 font-mono font-semibold">{t.appFooter.n3dControls}</span>
+        <span>{t.appFooter.player1Space}</span>
         <span className="text-slate-600">|</span>
-        <span>{t('Broń: 1-4 / Q, E', 'Weapon: 1-4 / Q, E')}</span>
+        <span>{t.appFooter.weapon14Q}</span>
         <span className="text-slate-600">|</span>
-        <span>{t('Kamera: V (TPP / Kokpit)', 'Camera: V (TPP / Cockpit)')}</span>
+        <span>{t.appFooter.cameraVTppCockpit}</span>
         <span className="text-slate-600">|</span>
-        <span>{t('Pełny ekran: F', 'Fullscreen: F')}</span>
+        <span>{t.appFooter.fullscreenF}</span>
         <span className="text-slate-600">|</span>
-        <span>{t('Odznaki: B', 'Badges: B')}</span>
+        <span>{t.appFooter.badgesB}</span>
         <span className="text-slate-600">|</span>
-        <span>{t('Pauza: ESC', 'Pause: ESC')}</span>
+        <span>{t.appFooter.pauseEsc}</span>
       </div>
       <div className="text-slate-500 font-mono text-[10px] hidden sm:block">
-        {t(
-          'Galaxa Odyssey • Architektura Hangar3D i pełny ekran',
-          'Galaxa Odyssey • Hangar3D Architecture & Fullscreen'
-        )}
+        {t.appFooter.galaxaOdysseyHangar3dArchitecture}
       </div>
     </footer>
   );

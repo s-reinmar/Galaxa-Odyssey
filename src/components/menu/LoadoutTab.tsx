@@ -2,8 +2,8 @@ import React from 'react';
 import { Shield, Palette } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
 import { UpgradeOption } from '../../types/game';
-import { UPGRADE_CONFIGS, UPGRADE_LABELS } from '../../config/gameplay/balance';
-import { SHIP_SKINS, SHIP_SKIN_LABELS } from '../../config/visuals/hangarVisuals';
+import { UPGRADE_CONFIGS } from '../../config/gameplay/balance';
+import { SHIP_SKINS } from '../../config/visuals/hangarVisuals';
 import type { ShipSkinId } from '../../config/visuals/hangarVisuals';
 import { soundEngine } from '../../game/audio/soundEngine';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
@@ -45,14 +45,14 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
     <div className="bg-slate-950/90 backdrop-blur-md border border-purple-500/50 rounded-2xl p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200 max-h-[66vh] overflow-y-auto">
       <MenuPanelHeader
         icon={<Shield size={16} />}
-        title={t('WYPOSAŻENIE I ULEPSZENIA MYŚLIWCA', 'STARFIGHTER LOADOUT & UPGRADES')}
+        title={t.loadoutTab.starfighterLoadoutUpgrades}
         titleClassName="text-purple-400"
         onBack={onBack}
       />
 
       <div>
         <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-          <Palette size={12} className="text-purple-400" /> {t('MALOWANIE MYŚLIWCA', 'STARFIGHTER LIVERY')}
+          <Palette size={12} className="text-purple-400" /> {t.loadoutTab.starfighterLivery}
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
           {(Object.keys(SHIP_SKINS) as ShipSkinId[]).map((skinKey) => (
@@ -66,14 +66,14 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
                   : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
               }`}
             >
-              {SHIP_SKIN_LABELS[skinKey] ? t(SHIP_SKIN_LABELS[skinKey].pl, SHIP_SKIN_LABELS[skinKey].en) : SHIP_SKINS[skinKey].name}
+              {t.hangar.skins[skinKey]}
             </button>
           ))}
         </div>
       </div>
 
       <div className="text-[11px] text-amber-300 font-mono font-bold bg-amber-950/30 border border-amber-500/30 rounded-lg px-3 py-1.5 flex justify-between items-center">
-        <span>{t('DOSTĘPNE KREDYTY:', 'AVAILABLE CREDITS:')}</span>
+        <span>{t.loadoutTab.availableCredits}</span>
         <span className="text-sm font-black">{engine.credits} CR</span>
       </div>
 
@@ -87,14 +87,14 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
             >
               <div>
                 <div className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
-                  {UPGRADE_LABELS[u.id] ? t(UPGRADE_LABELS[u.id].name.pl, UPGRADE_LABELS[u.id].name.en) : u.name}
+                  {t.upgradeLabels[u.id as keyof typeof t.upgradeLabels]?.name ?? u.name}
                   {owned && (
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                      {t('ZAMONTOWANO', 'MOUNTED')}
+                      {t.loadoutTab.mounted}
                     </span>
                   )}
                 </div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{UPGRADE_LABELS[u.id] ? t(UPGRADE_LABELS[u.id].subtitle.pl, UPGRADE_LABELS[u.id].subtitle.en) : u.subtitle}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{t.upgradeLabels[u.id as keyof typeof t.upgradeLabels]?.subtitle ?? u.subtitle}</div>
               </div>
 
               <button
@@ -114,7 +114,7 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
                     : 'bg-slate-800/40 text-slate-500 border border-slate-700/50 cursor-not-allowed'
                 }`}
               >
-                {owned ? t('AKTYWNE', 'ACTIVE') : `${u.cost} CR`}
+                {owned ? t.loadoutTab.active : `${u.cost} CR`}
               </button>
             </div>
           );

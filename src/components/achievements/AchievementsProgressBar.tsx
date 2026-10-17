@@ -16,7 +16,7 @@ export const AchievementsProgressBar: React.FC<AchievementsProgressBarProps> = (
   <div className="px-5 py-3 bg-slate-950/70 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
     <div className="flex-1 min-w-[200px]">
       <div className="flex justify-between items-center mb-1 text-slate-400 font-mono text-[11px]">
-        <span>{t('UKOŃCZENIE KARIERY', 'CAREER COMPLETION')}</span>
+        <span>{t.achievementsProgressBar.careerCompletion}</span>
         <span className="text-cyan-300 font-bold">{progressPercent}%</span>
       </div>
       <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -31,7 +31,7 @@ export const AchievementsProgressBar: React.FC<AchievementsProgressBarProps> = (
       <div className="flex items-center gap-1.5">
         <Coins size={14} className="text-amber-400" />
         <span>
-          {t('Zdobyto', 'Earned')}: <strong className="text-amber-300">+{totalCreditsEarned}</strong> {t('kredytów', 'credits')}
+          {t.achievementsProgressBar.earned}: <strong className="text-amber-300">+{totalCreditsEarned}</strong> {t.achievementsProgressBar.credits}
         </span>
       </div>
     </div>

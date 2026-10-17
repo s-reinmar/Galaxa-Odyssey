@@ -14,7 +14,7 @@ export const WeaponCapacitorPanel: React.FC<WeaponCapacitorPanelProps> = ({ ener
         <div className="flex flex-col gap-2 p-3 rounded-xl bg-slate-900/80 backdrop-blur-md border border-cyan-500/30 shadow-lg min-w-[240px]">
             <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 font-bold text-amber-300">
-                    <Zap size={14} className="text-amber-400" /> {t('KONDENSATOR BRONI', 'WEAPON CAPACITOR')}
+                    <Zap size={14} className="text-amber-400" /> {t.weaponCapacitorPanel.weaponCapacitor}
                 </span>
                 <span className="font-bold text-amber-200">{energyPercent}%</span>
             </div>
@@ -26,10 +26,10 @@ export const WeaponCapacitorPanel: React.FC<WeaponCapacitorPanelProps> = ({ ener
             </div>
 
             <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px]">
-                <span className="text-slate-400">{t('WYNIK:', 'SCORE:')}</span>
+                <span className="text-slate-400">{t.weaponCapacitorPanel.score}</span>
                 <span className="font-bold text-cyan-300">{score.toLocaleString()}</span>
                 <span className="text-slate-600">|</span>
-                <span className="text-slate-400">{t('KREDYTY:', 'CREDITS:')}</span>
+                <span className="text-slate-400">{t.weaponCapacitorPanel.credits}</span>
                 <span className="font-bold text-amber-400">+{credits}</span>
             </div>
         </div>

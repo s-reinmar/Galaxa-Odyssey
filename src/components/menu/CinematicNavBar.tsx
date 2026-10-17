@@ -4,15 +4,6 @@ import { soundEngine } from '../../game/audio/soundEngine';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { CINEMATIC_CAMERA_PRESETS } from './menuTypes';
 
-const CAMERA_LABELS: Record<string, [string, string]> = {
-  default: ['Statek 3/4', '3/4 Hero'],
-  hangar: ['Hangar', 'Hangar Bay'],
-  cockpit: ['Kokpit', 'Cockpit'],
-  weapons: ['Działa', 'Weapons'],
-  engines: ['Silniki', 'Engines'],
-  orbital: ['Orbita', 'Orbit'],
-};
-
 interface CinematicNavBarProps {
   activeCameraPreset: string;
   onCameraChange: (preset: string) => void;
@@ -32,8 +23,8 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-4 py-2.5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="text-xs font-mono text-cyan-300 font-bold flex items-center gap-2 mr-2">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>{t('TRYB KINOWY HANGARU', 'HANGAR CINEMATIC MODE')}</span>
-        <span className="text-slate-400 text-[10px] hidden sm:inline">({t('Przeciągnij myszą 360°, Scroll = Zoom', 'Drag mouse 360°, Scroll = Zoom')})</span>
+        <span>{t.cinematicNavBar.hangarCinematicMode}</span>
+        <span className="text-slate-400 text-[10px] hidden sm:inline">({t.cinematicNavBar.dragMouse360Scroll})</span>
       </div>
 
       <div className="flex items-center gap-1">
@@ -48,7 +39,7 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
                 : 'text-slate-400 hover:text-white bg-slate-900/60 border border-slate-800'
             }`}
           >
-            {CAMERA_LABELS[cam.id] ? t(...CAMERA_LABELS[cam.id]) : cam.label}
+            {t.cameraLabels[cam.id as keyof typeof t.cameraLabels] ?? cam.label}
           </button>
         ))}
       </div>
@@ -63,7 +54,7 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
         }}
         className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
       >
-        <span>{t('POWRÓT DO MENU [C]', 'BACK TO MENU [C]')}</span>
+        <span>{t.cinematicNavBar.backToMenuC}</span>
       </button>
 
       <button
@@ -72,7 +63,7 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
         className="px-4 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-lg text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
       >
         <Rocket size={13} />
-        <span>{t('START MISJI', 'START MISSION')}</span>
+        <span>{t.cinematicNavBar.startMission}</span>
       </button>
     </div>
   );

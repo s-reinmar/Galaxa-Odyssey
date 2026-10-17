@@ -1,3 +1,4 @@
+import type { TranslationSchema } from '../../config/content/locales';
 import type { Achievement } from '../../types/achievements';
 
 export interface RarityBadgeStyle {
@@ -52,20 +53,5 @@ export const getRarityBadgeStyle = (
   unlocked: boolean,
 ): RarityBadgeStyle => (unlocked ? RARITY_STYLES[rarity] ?? RARITY_STYLES.bronze : LOCKED_STYLE);
 
-export const getRarityLabel = (
-  rarity: Achievement['rarity'],
-  t: (polish: string, english: string) => string,
-): string => {
-  switch (rarity) {
-    case 'platinum':
-      return t('platynowa', 'platinum');
-    case 'gold':
-      return t('złota', 'gold');
-    case 'silver':
-      return t('srebrna', 'silver');
-    case 'bronze':
-      return t('brązowa', 'bronze');
-    default:
-      return rarity;
-  }
-};
+export const getRarityLabel = (rarity: Achievement['rarity'], t: TranslationSchema): string =>
+  t.rarityStyles[rarity] ?? rarity;

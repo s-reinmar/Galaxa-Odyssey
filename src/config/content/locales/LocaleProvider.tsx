@@ -3,13 +3,15 @@ import {
     DEFAULT_LOCALE,
     isSupportedLocale,
     LOCALE_STORAGE_KEY,
+    LOCALES,
     type SupportedLocale,
+    type TranslationSchema,
 } from './index';
 
 interface LocaleContextValue {
     locale: SupportedLocale;
     setLocale: (locale: SupportedLocale) => void;
-    t: (polish: string, english: string) => string;
+    t: TranslationSchema;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -32,8 +34,7 @@ export const LocaleProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         setLocaleState(nextLocale);
     };
 
-    const t = (polish: string, english: string) =>
-        locale === 'pl-PL' ? polish : english;
+    const t = LOCALES[locale];
 
     return (
         <LocaleContext.Provider value={{ locale, setLocale, t }}>

@@ -23,13 +23,13 @@ export const AchievementsHeader: React.FC<AchievementsHeaderProps> = ({
       <div>
         <div className="flex items-center gap-2">
           <h2 className="text-base sm:text-lg font-black tracking-wide text-cyan-400 font-mono">
-            {t('ODZNAKI I WYRÓŻNIENIA PILOTA', 'PILOT BADGES & COMMENDATIONS')}
+            {t.achievementsHeader.pilotBadgesCommendations}
           </h2>
           <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800/80 text-cyan-300 font-mono">
             {unlockedCount}/{totalCount}
           </span>
         </div>
-        <p className="text-xs text-slate-400">{t('Osiągnięcia kamieni milowych, honory bojowe i taktyczne medale kariery', 'Milestone achievements, combat honors & tactical career medals')}</p>
+        <p className="text-xs text-slate-400">{t.achievementsHeader.milestoneAchievementsCombatHonors}</p>
       </div>
     </div>
 
@@ -37,8 +37,8 @@ export const AchievementsHeader: React.FC<AchievementsHeaderProps> = ({
       type="button"
       onClick={onClose}
       className="p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 transition cursor-pointer"
-      title={t('Zamknij [ESC]', 'Close [ESC]')}
-      aria-label={t('Zamknij', 'Close')}
+      title={t.achievementsHeader.closeEsc}
+      aria-label={t.achievementsHeader.close}
     >
       <X size={18} />
     </button>

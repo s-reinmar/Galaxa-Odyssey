@@ -2,6 +2,7 @@ import React from 'react';
 import { Rocket, Users } from 'lucide-react';
 import { DifficultyLevel } from '../../types/game';
 import { soundEngine } from '../../game/audio/soundEngine';
+import type { TranslationSchema } from '../../config/content/locales';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { MenuPanelHeader } from './MenuPanel';
 
@@ -24,15 +25,15 @@ const difficultyColor = (diff: DifficultyLevel) =>
     ? 'text-cyan-400 border-cyan-500/60 bg-cyan-950/40'
     : 'text-pink-400 border-pink-500/60 bg-pink-950/40';
 
-const difficultyName = (diff: DifficultyLevel, t: (pl: string, en: string) => string) =>
-  diff === DifficultyLevel.EASY ? t('ŁATWY', 'EASY') : diff === DifficultyLevel.NORMAL ? t('NORMALNY', 'NORMAL') : t('TRUDNY', 'HARD');
+const difficultyName = (diff: DifficultyLevel, t: TranslationSchema) =>
+  diff === DifficultyLevel.EASY ? t.deployTab.easy : diff === DifficultyLevel.NORMAL ? t.deployTab.normal : t.deployTab.hard;
 
-const difficultyLabel = (diff: DifficultyLevel, t: (pl: string, en: string) => string) =>
+const difficultyLabel = (diff: DifficultyLevel, t: TranslationSchema) =>
   diff === DifficultyLevel.EASY
-    ? t('0.8x Zagrożenie', '0.8x Hazard')
+    ? t.deployTab.n08xHazard
     : diff === DifficultyLevel.NORMAL
-    ? t('1.0x Standard', '1.0x Standard')
-    : t('1.5x Śmiertelny', '1.5x Lethal');
+    ? t.deployTab.n10xStandard
+    : t.deployTab.n15xLethal;
 
 export const DeployTab: React.FC<DeployTabProps> = ({
   selectedCoop,
@@ -49,7 +50,7 @@ export const DeployTab: React.FC<DeployTabProps> = ({
     <div className="bg-slate-950/90 backdrop-blur-md border border-cyan-500/50 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4 animate-in fade-in duration-200">
       <MenuPanelHeader
         icon={<Rocket size={16} />}
-        title={t('PROTOKÓŁ WDROŻENIA MISJI', 'MISSION DEPLOYMENT PROTOCOL')}
+        title={t.deployTab.missionDeploymentProtocol}
         titleClassName="text-cyan-400"
         borderClassName="pb-2.5"
         onBack={onBack}
@@ -57,7 +58,7 @@ export const DeployTab: React.FC<DeployTabProps> = ({
 
       <div>
         <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
-          {t('FORMACJA LOTU', 'FLIGHT FORMATION')}
+          {t.deployTab.flightFormation}
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -73,8 +74,8 @@ export const DeployTab: React.FC<DeployTabProps> = ({
                 : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-slate-200'
             }`}
           >
-            <div className="text-xs font-bold font-mono">{t('1P SOLO ROZPOZNANIE', '1P SOLO RECON')}</div>
-            <div className="text-[10px] text-slate-400">{t('Samotny przechwytywacz', 'Single interceptor run')}</div>
+            <div className="text-xs font-bold font-mono">{t.deployTab.n1pSoloRecon}</div>
+            <div className="text-[10px] text-slate-400">{t.deployTab.singleInterceptorRun}</div>
           </button>
 
           <button
@@ -91,16 +92,16 @@ export const DeployTab: React.FC<DeployTabProps> = ({
             }`}
           >
             <div className="text-xs font-bold font-mono flex items-center gap-1">
-              <Users size={12} /> {t('2P CO-OP WINGMAN', '2P CO-OP WINGMAN')}
+              <Users size={12} /> {t.deployTab.n2pCoOpWingman}
             </div>
-            <div className="text-[10px] text-slate-400">{t('Wspólny ekran lotu bojowego', 'Shared combat flight screen')}</div>
+            <div className="text-[10px] text-slate-400">{t.deployTab.sharedCombatFlightScreen}</div>
           </button>
         </div>
       </div>
 
       <div>
         <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
-          {t('PROFIL ZAGROŻENIA SEKTORA', 'THREAT SECTOR PROFILE')}
+          {t.deployTab.threatSectorProfile}
         </label>
         <div className="grid grid-cols-3 gap-2">
           {DIFFICULTIES.map((diff) => (
@@ -132,7 +133,7 @@ export const DeployTab: React.FC<DeployTabProps> = ({
         disabled={isWarping}
         className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm font-mono tracking-wider rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
       >
-        <Rocket size={18} /> {t('URUCHOM NAPĘD NADPRZESTRZENNY I STARTUJ', 'ENGAGE HYPERDRIVE & LAUNCH')}
+        <Rocket size={18} /> {t.deployTab.engageHyperdriveLaunch}
       </button>
     </div>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import type { Achievement } from '../../types/achievements';
 import { AchievementIcon } from './AchievementIcon';
 import { getRarityBadgeStyle } from './rarityStyles';
-import { localizeAchievement } from '../../config/gameplay/achievements';
+import { getAchievementTexts } from '../../config/content/locales';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 
 interface AchievementInspectorProps {
@@ -12,7 +12,7 @@ interface AchievementInspectorProps {
 
 export const AchievementInspector: React.FC<AchievementInspectorProps> = ({ achievement: rawAchievement, unlocked }) => {
   const { t } = useLocale();
-  const achievement = localizeAchievement(rawAchievement, t);
+  const achievement = { ...rawAchievement, ...getAchievementTexts(t, rawAchievement.id) };
   return (
   <div className="px-5 py-3 border-t border-slate-800 bg-slate-950/90 flex items-center justify-between gap-3 text-xs">
     <div className="flex items-center gap-3 min-w-0">
@@ -34,9 +34,9 @@ export const AchievementInspector: React.FC<AchievementInspectorProps> = ({ achi
 
     <div className="shrink-0 text-right font-mono">
       <span className={`text-[11px] font-bold ${unlocked ? 'text-emerald-400' : 'text-slate-500'}`}>
-        {unlocked ? t('ODEBRANE', 'COMMISSIONED') : t('W TOKU', 'IN PROGRESS')}
+        {unlocked ? t.achievementInspector.commissioned : t.achievementInspector.inProgress}
       </span>
-      <div className="text-[10px] text-amber-300">+{achievement.rewardCredits} {t('kredytów', 'Credits')}</div>
+      <div className="text-[10px] text-amber-300">+{achievement.rewardCredits} {t.achievementInspector.credits}</div>
     </div>
   </div>
   );

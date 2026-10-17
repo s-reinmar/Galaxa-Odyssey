@@ -27,7 +27,7 @@ export const ShieldPanel: React.FC<ShieldPanelProps> = ({
         >
             <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 font-bold text-cyan-300">
-                    <Shield size={14} className={isTakingDamage ? 'text-red-400 animate-spin' : 'text-cyan-400'} /> {t('TARCZA DEFLEKTOROWA', 'DEFLECTOR SHIELD')}
+                    <Shield size={14} className={isTakingDamage ? 'text-red-400 animate-spin' : 'text-cyan-400'} /> {t.shieldPanel.deflectorShield}
                 </span>
                 <span className={`font-bold ${isTakingDamage ? 'text-red-300' : 'text-cyan-200'}`}>{shieldPercent}%</span>
             </div>
@@ -50,16 +50,16 @@ export const ShieldPanel: React.FC<ShieldPanelProps> = ({
             </div>
 
             <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px]">
-                <span className="text-slate-400">{t('REZERWY KADŁUBA:', 'HULL RESERVES:')}</span>
+                <span className="text-slate-400">{t.shieldPanel.hullReserves}</span>
                 <div className="flex items-center gap-1.5">
                     {Array.from({ length: Math.max(0, lives) }).map((_, i) => (
                         <div
                             key={i}
                             className="w-3.5 h-3.5 rounded-sm bg-cyan-400 border border-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.8)]"
-                            title={t(`Jednostka życia ${i + 1}`, `Life Unit ${i + 1}`)}
+                            title={t.shieldPanel.lifeUnit(i + 1)}
                         />
                     ))}
-                    {lives <= 0 && <span className="text-red-400 font-bold">{t('KRYTYCZNE', 'CRITICAL')}</span>}
+                    {lives <= 0 && <span className="text-red-400 font-bold">{t.shieldPanel.critical}</span>}
                 </div>
             </div>
 

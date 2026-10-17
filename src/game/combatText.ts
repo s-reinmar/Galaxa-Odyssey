@@ -1,4 +1,4 @@
-export type CombatTextTranslator = (polish: string, english: string) => string;
+import type { TranslationSchema } from '../config/content/locales';
 
 export const HIT_NOTICE = {
     SHIELD_DEFLECTED: 'SHIELD DEFLECTED',
@@ -21,18 +21,18 @@ export interface LocalizableAnnouncement {
     subtitle: string;
 }
 
-export const localizeHitNotice = (notice: string, t: CombatTextTranslator): string => {
-    if (notice === HIT_NOTICE.SHIELD_DEFLECTED) return t('TARCZA ODBIŁA OSTRZAŁ', notice);
-    if (notice === HIT_NOTICE.CRITICAL_HULL_HIT) return t('KRYTYCZNE TRAFIENIE KADŁUBA!', notice);
+export const localizeHitNotice = (notice: string, t: TranslationSchema): string => {
+    if (notice === HIT_NOTICE.SHIELD_DEFLECTED) return t.combatText.shieldDeflected;
+    if (notice === HIT_NOTICE.CRITICAL_HULL_HIT) return t.combatText.criticalHullHit;
     const shieldMatch = /^-(\d+) SHIELD$/.exec(notice);
-    if (shieldMatch) return t(`-${shieldMatch[1]} TARCZY`, notice);
+    if (shieldMatch) return t.combatText.shieldDamage(shieldMatch[1]);
     return notice;
 };
 
 // Announcement titles start with an emoji prefix that is language-neutral.
 export const localizeAnnouncement = (
     announcement: LocalizableAnnouncement,
-    t: CombatTextTranslator,
+    t: TranslationSchema,
 ): { title: string; subtitle: string } => {
     const icon = announcement.title.slice(0, Math.max(0, announcement.title.indexOf(' ')));
     const withIcon = (text: string) => (icon ? `${icon} ${text}` : text);
@@ -40,33 +40,33 @@ export const localizeAnnouncement = (
     switch (announcement.id) {
         case 'TRIPLE_SHOT':
             return {
-                title: withIcon(t('POTRÓJNY STRZAŁ AKTYWNY!', 'TRIPLE SHOT ENGAGED!')),
-                subtitle: t('Aktywowano trójkierunkowe działa wachlarzowe', '3-Way Angled Fan Cannons Activated'),
+                title: withIcon(t.combatText.tripleShotEngaged),
+                subtitle: t.combatText.n3WayAngledFan,
             };
         case 'LASER_BEAM':
             return {
-                title: withIcon(t('HIPERLASER AKTYWNY!', 'HYPER LASER BEAM ENGAGED!')),
-                subtitle: t('Aktywowano przenikliwą kolumnę lasera spójnego', 'Piercing Coherent Laser Column Activated'),
+                title: withIcon(t.combatText.hyperLaserBeamEngaged),
+                subtitle: t.combatText.piercingCoherentLaserColumn,
             };
         case 'PLASMA_SPREAD':
             return {
-                title: withIcon(t('ROZPRYSK PLAZMY AKTYWNY!', 'PLASMA SPREAD ENGAGED!')),
-                subtitle: t('Aktywowano pięciokierunkowe ciężkie pociski zakłócające', '5-Way Heavy Disruption Bolts Activated'),
+                title: withIcon(t.combatText.plasmaSpreadEngaged),
+                subtitle: t.combatText.n5WayHeavyDisruption,
             };
         case 'SHIELD_RESTORED':
             return {
-                title: withIcon(t('TARCZA PRZYWRÓCONA DO MAKSIMUM', 'MAXIMUM SHIELD RESTORED')),
-                subtitle: t('Deflektor przeładowany do 100%', 'Deflector System Overcharged to 100%'),
+                title: withIcon(t.combatText.maximumShieldRestored),
+                subtitle: t.combatText.deflectorSystemOverchargedTo,
             };
         case 'EXTRA_LIFE':
             return {
-                title: withIcon(t('ZDOBYTO DODATKOWE ŻYCIE PILOTA', 'EXTRA PILOT LIFE ACQUIRED')),
-                subtitle: t('Zapasowa jednostka kadłuba online', 'Hull Backup Unit Online'),
+                title: withIcon(t.combatText.extraPilotLifeAcquired),
+                subtitle: t.combatText.hullBackupUnitOnline,
             };
         case 'CANNON_LEVEL':
             return {
-                title: withIcon(t(`POZIOM DZIAŁA ${announcement.level}`, `CANNON LEVEL ${announcement.level}`)),
-                subtitle: t('Ulepszono poziom podstawowej siły ognia', 'Primary Firepower Tier Upgraded'),
+                title: withIcon(t.combatText.cannonLevel(announcement.level ?? 1)),
+                subtitle: t.combatText.primaryFirepowerTierUpgraded,
             };
         default:
             return { title: announcement.title, subtitle: announcement.subtitle };

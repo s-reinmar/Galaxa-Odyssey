@@ -2,7 +2,6 @@ import React from 'react';
 import { Crosshair, Sparkles, Zap, Layers } from 'lucide-react';
 import { WeaponMode, WEAPON_MODE_CONFIGS } from '../../types/game';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
-import { WEAPON_LABELS } from '../../config/gameplay/balance';
 
 const WEAPON_SLOTS = [
     { mode: WeaponMode.STANDARD, num: '1', icon: Crosshair },
@@ -43,7 +42,7 @@ export const WeaponSelector: React.FC<WeaponSelectorProps> = ({ unlockedModes, a
                         <Icon size={14} style={{ color: isUnlocked ? cfg.color : '#64748b' }} />
                         <div className="flex flex-col items-start leading-tight">
                             <span className="text-[10px] text-slate-400">[{num}]</span>
-                            <span>{t(WEAPON_LABELS[mode].label.pl, WEAPON_LABELS[mode].label.en)}</span>
+                            <span>{t.weaponLabels[mode].label}</span>
                         </div>
                         {isActive && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />}
                     </button>

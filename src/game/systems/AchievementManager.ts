@@ -7,8 +7,6 @@ import { AchievementProgressService } from './AchievementProgressService';
 
 export interface ActiveAchievementToast {
     id: string;
-    title: string;
-    subtitle: string;
     rewardCredits: number;
     iconName: string;
 }
@@ -92,8 +90,6 @@ export class AchievementManager {
 
         this.activeToast = {
             id: ach.id,
-            title: ach.title,
-            subtitle: ach.subtitle,
             rewardCredits: ach.rewardCredits,
             iconName: ach.iconName,
         };

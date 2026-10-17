@@ -136,7 +136,7 @@ export const Modern3DMenu: React.FC<Modern3DMenuProps> = ({ engine, onLaunch, on
       <div
         ref={scene.containerRef}
         className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing"
-        title={t('Kliknij i przeciągnij, aby obrócić myśliwiec 3D • Przewiń, aby przybliżyć', 'Click & drag to orbit the 3D starfighter • Scroll to zoom')}
+        title={t.modern3DMenu.clickDragToOrbit}
       />
 
       {isIntroActive && (

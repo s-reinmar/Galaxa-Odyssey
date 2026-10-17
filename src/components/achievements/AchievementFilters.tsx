@@ -21,22 +21,22 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
 }) => {
   const { t } = useLocale();
   const categoryLabels: Record<CategoryFilter, string> = {
-    all: t('wszystkie', 'all'),
-    combat: t('walka', 'combat'),
-    survival: t('przetrwanie', 'survival'),
-    progression: t('postęp', 'progression'),
-    mastery: t('mistrzostwo', 'mastery'),
+    all: t.achievementFilters.all,
+    combat: t.achievementFilters.combat,
+    survival: t.achievementFilters.survival,
+    progression: t.achievementFilters.progression,
+    mastery: t.achievementFilters.mastery,
   };
   const statusButtons: { value: StatusFilter; label: string; active: string }[] = [
-    { value: 'all', label: `${t('Wszystkie', 'All')} (${totalCount})`, active: 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/40' },
+    { value: 'all', label: `${t.achievementFilters.all2} (${totalCount})`, active: 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/40' },
     {
       value: 'unlocked',
-      label: `${t('Odblokowane', 'Unlocked')} (${unlockedCount})`,
+      label: `${t.achievementFilters.unlocked} (${unlockedCount})`,
       active: 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40',
     },
     {
       value: 'in_progress',
-      label: `${t('Zablokowane', 'Locked')} (${totalCount - unlockedCount})`,
+      label: `${t.achievementFilters.locked} (${totalCount - unlockedCount})`,
       active: 'bg-amber-500/25 text-amber-300 border border-amber-500/40',
     },
   ];

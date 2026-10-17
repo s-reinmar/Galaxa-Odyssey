@@ -48,7 +48,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           GALAXA ODYSSEY
         </h1>
         <p className="text-[10px] text-slate-400">
-          {t('Kosmiczna walka orbitalna 3D XXI wieku', '21st-Century 3D Orbital Space Combat')}
+          {t.appHeader.n21stCentury3dOrbital}
         </p>
       </div>
     </div>
@@ -57,11 +57,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <button
         type="button"
         onClick={onToggleAchievements}
-        title={t('Zobacz odznaki osiągnięć [B]', 'Inspect Achievement Badges [B]')}
+        title={t.appHeader.inspectAchievementBadgesB}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-amber-500/50 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 hover:text-amber-200 transition text-xs font-mono font-bold"
       >
         <Trophy size={14} className="text-amber-400" />
-        <span className="hidden sm:inline">{t('ODZNAKI', 'BADGES')}</span>
+        <span className="hidden sm:inline">{t.appHeader.badges}</span>
         <span className="text-[11px] text-amber-200">
           ({unlockedAchievementCount}/{totalAchievementCount})
         </span>
@@ -70,7 +70,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <button
         type="button"
         onClick={onToggleAudio}
-        title={soundEnabled ? t('Wycisz dźwięk', 'Mute Audio') : t('Włącz dźwięk', 'Enable Audio')}
+        title={soundEnabled ? t.appHeader.muteAudio : t.appHeader.enableAudio}
         className={`p-2 rounded-lg border transition ${
           soundEnabled
             ? 'bg-cyan-950/60 border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/60'
@@ -83,7 +83,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <button
         type="button"
         onClick={onToggleParticles}
-        title={particlesEnabled ? t('Wysokie efekty', 'High FX') : t('Niskie efekty', 'Low FX')}
+        title={particlesEnabled ? t.appHeader.highFx : t.appHeader.lowFx}
         className={`p-2 rounded-lg border transition ${
           particlesEnabled
             ? 'bg-purple-950/60 border-purple-500/40 text-purple-300 hover:bg-purple-900/60'
@@ -98,8 +98,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         onClick={onToggleFullscreen}
         title={
           isFullscreen
-            ? t('Opuść pełny ekran [F]', 'Exit Fullscreen [F]')
-            : t('Pełny ekran [F]', 'Fullscreen [F]')
+            ? t.appHeader.exitFullscreenF
+            : t.appHeader.fullscreenF
         }
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 hover:border-cyan-400 transition text-xs font-mono font-bold"
       >
@@ -108,14 +108,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         ) : (
           <Maximize2 size={14} className="text-cyan-400" />
         )}
-        <span className="hidden sm:inline">{isFullscreen ? t('OKNO', 'WINDOW') : t('PEŁNY EKRAN', 'FULLSCREEN')}</span>
+        <span className="hidden sm:inline">{isFullscreen ? t.appHeader.window : t.appHeader.fullscreen}</span>
         <span className="text-[10px] text-slate-400 hidden md:inline">[F]</span>
       </button>
 
       <button
         type="button"
         onClick={onResetProfile}
-        title={t('Zresetuj grę i osiągnięcia', 'Reset Game & Achievements')}
+        title={t.appHeader.resetGameAchievements}
         className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition"
       >
         <RotateCcw size={16} />

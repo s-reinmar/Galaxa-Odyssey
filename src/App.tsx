@@ -60,10 +60,7 @@ export const App: React.FC = () => {
           onResetProfile={() => {
             if (
               window.confirm(
-                t(
-                  'Zresetować dane zapisu gry, osiągnięcia i profil?',
-                  'Reset saved game data, achievements, and profile?'
-                )
+                t.app.resetSavedGameData
               )
             ) {
               engine.clearSavedGame();

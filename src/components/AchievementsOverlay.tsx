@@ -22,7 +22,7 @@ export const AchievementsOverlay: React.FC<AchievementsOverlayProps> = ({ engine
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={t('Odznaki i wyróżnienia pilota', 'Pilot badges and commendations')}
+      aria-label={t.achievementsOverlay.pilotBadgesAndCommendations}
       className="absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >

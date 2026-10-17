@@ -3,7 +3,7 @@ import { CheckCircle2, Lock } from 'lucide-react';
 import type { Achievement } from '../../types/achievements';
 import { AchievementIcon } from './AchievementIcon';
 import { getRarityBadgeStyle, getRarityLabel } from './rarityStyles';
-import { localizeAchievement } from '../../config/gameplay/achievements';
+import { getAchievementTexts } from '../../config/content/locales';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 
 interface AchievementCardProps {
@@ -22,7 +22,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
   onSelect,
 }) => {
   const { t } = useLocale();
-  const ach = localizeAchievement(achievement, t);
+  const ach = { ...achievement, ...getAchievementTexts(t, achievement.id) };
   const style = getRarityBadgeStyle(ach.rarity, unlocked);
 
   return (
@@ -65,7 +65,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             {unlocked ? (
               <div className="flex items-center gap-1 text-emerald-400">
                 <CheckCircle2 size={12} />
-                <span>{t('ODEBRANE', 'COMMISSIONED')}</span>
+                <span>{t.achievementCard.commissioned}</span>
               </div>
             ) : ach.maxProgress > 1 ? (
               <div className="flex items-center gap-2 flex-1 mr-3">
@@ -80,10 +80,10 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
                 </span>
               </div>
             ) : (
-              <span className="text-slate-500">{t('Zablokowane', 'Locked')}</span>
+              <span className="text-slate-500">{t.achievementCard.locked}</span>
             )}
 
-            <span className="text-amber-300 font-bold shrink-0">+{ach.rewardCredits} {t('kr', 'cr')}</span>
+            <span className="text-amber-300 font-bold shrink-0">+{ach.rewardCredits} {t.achievementCard.cr}</span>
           </div>
         </div>
       </div>

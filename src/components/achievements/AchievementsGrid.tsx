@@ -22,7 +22,7 @@ export const AchievementsGrid: React.FC<AchievementsGridProps> = ({
   return (
   <div className="flex-1 overflow-y-auto p-4 sm:p-5 max-h-[50vh] sm:max-h-[55vh]">
     {achievements.length === 0 ? (
-      <div className="py-12 text-center text-slate-500 text-sm">{t('Brak odznak pasujących do tego filtra.', 'No badges matching this filter.')}</div>
+      <div className="py-12 text-center text-slate-500 text-sm">{t.achievementsGrid.noBadgesMatchingThis}</div>
     ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {achievements.map((ach) => (

@@ -19,3 +19,5 @@ export const isSupportedLocale = (value: string | null): value is SupportedLocal
     value !== null && Object.prototype.hasOwnProperty.call(LOCALES, value);
 
 export type { TranslationSchema };
+export const getAchievementTexts = (t: TranslationSchema, id: string) =>
+    (t.achievementTexts as Record<string, { title: string; subtitle: string; description: string }>)[id];

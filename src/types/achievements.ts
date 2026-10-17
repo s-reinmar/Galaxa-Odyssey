@@ -3,9 +3,6 @@ export { ACHIEVEMENTS } from '../config/gameplay/achievements';
 
 export interface Achievement {
     id: string;
-    title: string;
-    subtitle: string;
-    description: string;
     category: 'combat' | 'survival' | 'progression' | 'mastery';
     rarity: 'bronze' | 'silver' | 'gold' | 'platinum';
     rewardCredits: number;
