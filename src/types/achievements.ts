@@ -10,7 +10,7 @@ export interface Achievement {
     rarity: 'bronze' | 'silver' | 'gold' | 'platinum';
     rewardCredits: number;
     maxProgress: number;
-    iconName:c
+    iconName:
         | 'trophy'
         | 'skull'
         | 'zap'

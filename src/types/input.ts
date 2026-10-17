@@ -3,11 +3,11 @@
  * Wartości osi są znormalizowane w zakresie [-1, 1].
  */
 export interface PlayerInputState {
-    // Wektor ruchu w osi X (-1: w lewo, 1: w prawo, 0: brak)
+    // Wektor ruchu w osi X (-1: w lewo, 1: w prawo, 0: spoczynek)
     moveX: number;
-    // Wektor ruchu w osi Y (-1: w dół, 1: w górę, 0: brak)
+    // Wektor ruchu w osi Y (-1: w dół, 1: w górę, 0: spoczynek)
     moveY: number;
-    // Intencja prowadzenia ognia ciągłego / strzału
+    // Intencja prowadzenia ognia
     fire: boolean;
     // Intencja wykonania uniku / beczki (roll)
     roll?: boolean;
@@ -23,6 +23,6 @@ export interface GameInputActions {
 }
 
 /**
- * Identyfikator wirtualnych przycisków / akcji
+ * Identyfikator wirtualnych przycisków / akcji dotykowych
  */
 export type VirtualButtonAction = 'left' | 'right' | 'up' | 'down' | 'fire' | 'roll';

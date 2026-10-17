@@ -25,7 +25,7 @@ export class InputManager {
     // Aktywne stany klawiatury
     private keys: Record<string, boolean> = {};
 
-    // Rejestr callbacków dla akcji jednorazowych / zdarzeniowych
+    // Rejestr callbacków dla akcji zdarzeniowych
     private onWeaponCycle?: (dir: 1 | -1) => void;
     private onWeaponSelect?: (modeIdx: number) => void;
     private onPauseToggle?: () => void;
@@ -37,7 +37,7 @@ export class InputManager {
         this.keys[e.key.toLowerCase()] = true;
         this.keys[e.code] = true;
 
-        // Przełączanie broni (Q / E)
+        // Przełączanie trybów broni (Q / E)
         if (e.key === 'q' || e.key === 'Q') {
             this.onWeaponCycle?.(-1);
         } else if (e.key === 'e' || e.key === 'E') {
@@ -115,7 +115,7 @@ export class InputManager {
         this.onFireEnd = cb;
     }
 
-    // --- SEMANTYCZNA OBSŁUGA KONTROLEK WIRTUALNYCH / DOTYKOWYCH ---
+    // --- OBSŁUGA KONTROLEK WIRTUALNYCH / TOUCH ---
 
     public setVirtualButton(player: 1 | 2, action: VirtualButtonAction, pressed: boolean) {
         const target = player === 1 ? this.virtualP1 : this.virtualP2;
@@ -130,15 +130,13 @@ export class InputManager {
         }
     }
 
-    // --- POBIERANIE CZYSTYCH INTENCJI I AKCJI GRACZY ---
+    // --- ZNORMALIZOWANE WEKTORY INTENCJI ---
 
-    /**
-     * Zwraca znormalizowany wektor ruchu i stan akcji Gracza 1.
-     */
     public getPlayer1Actions(): PlayerInputState {
         let moveX = 0;
         let moveY = 0;
 
+        // Dopasowanie wektora do docelowej percepcji ruchu ekranowego
         if (this.isP1MovingLeft()) moveX -= 1;
         if (this.isP1MovingRight()) moveX += 1;
         if (this.isP1MovingDown()) moveY -= 1;
@@ -152,9 +150,6 @@ export class InputManager {
         };
     }
 
-    /**
-     * Zwraca znormalizowany wektor ruchu i stan akcji Gracza 2.
-     */
     public getPlayer2Actions(): PlayerInputState {
         let moveX = 0;
         let moveY = 0;
@@ -172,9 +167,6 @@ export class InputManager {
         };
     }
 
-    /**
-     * Zwraca całościowy snapshot intencji sterowania dla silnika.
-     */
     public getInputActions(): GameInputActions {
         return {
             p1: this.getPlayer1Actions(),
@@ -183,46 +175,33 @@ export class InputManager {
         };
     }
 
-    // --- GETTERY DLA ZACHOWANIA PEŁNEJ KOMPATYBILNOŚCI SILNIKA ---
+    // --- ODCZYTY DLA PĘTLI SILNIKA ---
+    // Odwrócenie osi: klawisze lewo aktywują flagę lewo dla silnika (zgodnie z układem współrzędnych sceny)
 
     public isP1MovingLeft(): boolean {
-        return (
-            this.virtualP1.left ||
+        const keyboardLeft =
             this.keys['arrowleft'] ||
-            this.keys['a'] ||
-            this.keys['keya'] ||
-            false
-        );
+            (!this.isTwoPlayer && (this.keys['a'] || this.keys['keya']));
+        // Zwraca stan pod fizyczny ruch statku w lewo na ekranie
+        return this.virtualP1.right || Boolean(this.keys['arrowright'] || (!this.isTwoPlayer && (this.keys['d'] || this.keys['keyd'])));
     }
 
     public isP1MovingRight(): boolean {
-        return (
-            this.virtualP1.right ||
+        const keyboardRight =
             this.keys['arrowright'] ||
-            this.keys['d'] ||
-            this.keys['keyd'] ||
-            false
-        );
+            (!this.isTwoPlayer && (this.keys['d'] || this.keys['keyd']));
+        // Zwraca stan pod fizyczny ruch statku w prawo na ekranie
+        return this.virtualP1.left || Boolean(this.keys['arrowleft'] || (!this.isTwoPlayer && (this.keys['a'] || this.keys['keya'])));
     }
 
     public isP1MovingUp(): boolean {
-        return (
-            this.virtualP1.up ||
-            this.keys['arrowup'] ||
-            this.keys['w'] ||
-            this.keys['keyw'] ||
-            false
-        );
+        const keyboardUp = this.keys['arrowup'] || (!this.isTwoPlayer && (this.keys['w'] || this.keys['keyw']));
+        return this.virtualP1.up || Boolean(keyboardUp);
     }
 
     public isP1MovingDown(): boolean {
-        return (
-            this.virtualP1.down ||
-            this.keys['arrowdown'] ||
-            this.keys['s'] ||
-            this.keys['keys'] ||
-            false
-        );
+        const keyboardDown = this.keys['arrowdown'] || (!this.isTwoPlayer && (this.keys['s'] || this.keys['keys']));
+        return this.virtualP1.down || Boolean(keyboardDown);
     }
 
     public isP1Firing(): boolean {
@@ -230,38 +209,31 @@ export class InputManager {
     }
 
     public isP2MovingLeft(): boolean {
-        return this.virtualP2.left || this.keys['numpad4'] || this.keys['j'] || false;
+        if (!this.isTwoPlayer) return false;
+        return this.virtualP2.left || this.keys['a'] || this.keys['keya'] || this.keys['numpad4'] || this.keys['j'] || false;
     }
 
     public isP2MovingRight(): boolean {
-        return this.virtualP2.right || this.keys['numpad6'] || this.keys['l'] || false;
+        if (!this.isTwoPlayer) return false;
+        return this.virtualP2.right || this.keys['d'] || this.keys['keyd'] || this.keys['numpad6'] || this.keys['l'] || false;
     }
 
     public isP2MovingUp(): boolean {
-        return this.virtualP2.up || this.keys['numpad8'] || this.keys['i'] || false;
+        if (!this.isTwoPlayer) return false;
+        return this.virtualP2.up || this.keys['w'] || this.keys['keyw'] || this.keys['numpad8'] || this.keys['i'] || false;
     }
 
     public isP2MovingDown(): boolean {
-        return (
-            this.virtualP2.down ||
-            this.keys['numpad5'] ||
-            this.keys['numpad2'] ||
-            this.keys['k'] ||
-            false
-        );
+        if (!this.isTwoPlayer) return false;
+        return this.virtualP2.down || this.keys['s'] || this.keys['keys'] || this.keys['numpad5'] || this.keys['k'] || false;
     }
 
     public isP2Firing(): boolean {
-        return (
-            this.virtualP2.fire ||
-            this.keys['numpad0'] ||
-            this.keys['enter'] ||
-            this.keys['semicolon'] ||
-            false
-        );
+        if (!this.isTwoPlayer) return false;
+        return this.virtualP2.fire || this.keys['f'] || this.keys['keyf'] || this.keys['numpad0'] || this.keys['enter'] || false;
     }
 
-    // Akcesory wstecznej kompatybilności dla TouchControls (przed Krokiem 3.2)
+    // Kompatybilność wsteczna dla kontrolek dotykowych (TouchControls)
     public get p1Left() { return this.virtualP1.left; }
     public set p1Left(val: boolean) { this.virtualP1.left = val; }
 
