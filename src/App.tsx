@@ -7,6 +7,7 @@ import { AchievementsOverlay } from './components/AchievementsOverlay';
 import { AchievementToast } from './components/AchievementToast';
 import { soundEngine } from './game/audio/soundEngine';
 import { GameState } from './types/game';
+import { shipSkinRepo, StorageService } from './game/persistence/StorageService';
 import type { ShipSkinId } from './config/visuals/hangarVisuals';
 import { AppHeader } from './components/AppHeader';
 import { AppFooter } from './components/AppFooter';
@@ -31,7 +32,7 @@ export const App: React.FC = () => {
     GameState.HOW_TO_PLAY,
   ].includes(engine.gameState);
 
-  const selectedSkin = (typeof window !== 'undefined' && localStorage.getItem('galaxa_ship_skin') as ShipSkinId) || 'titanium';
+  const selectedSkin = (shipSkinRepo.load() as ShipSkinId | null) || 'titanium';
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
@@ -64,9 +65,7 @@ export const App: React.FC = () => {
               )
             ) {
               engine.clearSavedGame();
-              localStorage.removeItem('galaxa_odyssey_achievements');
-              localStorage.removeItem('galaxa_odyssey_profile');
-              localStorage.removeItem('galaxa_ship_skin');
+              StorageService.resetPilotData({ includeShipSkin: true });
               engine.loadAchievements();
               engine.loadProfile();
               engine.returnToMenu();

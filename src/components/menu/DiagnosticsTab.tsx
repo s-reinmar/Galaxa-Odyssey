@@ -2,6 +2,7 @@ import React from 'react';
 import { Settings, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
 import { soundEngine } from '../../game/audio/soundEngine';
+import { StorageService } from '../../game/persistence/StorageService';
 import { MenuPanelHeader, ReturnToBridgeButton } from './MenuPanel';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import type { SupportedLocale } from '../../config/content/locales';
@@ -22,8 +23,7 @@ export const DiagnosticsTab: React.FC<DiagnosticsTabProps> = ({ engine, onStateU
   const handleWipeProfile = () => {
     if (window.confirm(t.diagnosticsTab.resetLocalPilotProfile)) {
       engine.clearSavedGame();
-      localStorage.removeItem('galaxa_odyssey_achievements');
-      localStorage.removeItem('galaxa_odyssey_profile');
+      StorageService.resetPilotData();
       engine.loadAchievements();
       engine.loadProfile();
       onStateUpdate();

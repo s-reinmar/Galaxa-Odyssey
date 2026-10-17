@@ -1,3 +1,5 @@
+import { StorageKeys } from '../../platform/storage/StorageKeys';
+
 export type MenuTab = 'main' | 'deploy' | 'loadout' | 'diagnostics' | 'manual';
 
 export interface CameraPresetOption {
@@ -31,5 +33,5 @@ export const TAB_CAMERA_PRESET: Record<MenuTab, string> = {
   manual: 'engines',
 };
 
-export const SHIP_SKIN_STORAGE_KEY = 'galaxa_ship_skin';
-export const INTRO_SEEN_STORAGE_KEY = 'galaxa_intro_seen';
+export const SHIP_SKIN_STORAGE_KEY = StorageKeys.shipSkin;
+export const INTRO_SEEN_STORAGE_KEY = StorageKeys.introSeen;

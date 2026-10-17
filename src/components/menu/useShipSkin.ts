@@ -3,23 +3,21 @@ import { GameEngine } from '../../game/GameEngine';
 import { soundEngine } from '../../game/audio/soundEngine';
 import type { ShipSkinId } from '../../config/visuals/hangarVisuals';
 import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
-import { SHIP_SKIN_STORAGE_KEY } from './menuTypes';
+import { shipSkinRepo } from '../../game/persistence/StorageService';
 
 export function useShipSkin(
   engine: GameEngine,
   sceneRef: MutableRefObject<SpaceHangarScene | null>
 ) {
   const [activeSkin, setActiveSkin] = useState<ShipSkinId>(
-    () => (localStorage.getItem(SHIP_SKIN_STORAGE_KEY) as ShipSkinId) || 'titanium'
+    () => (shipSkinRepo.load() as ShipSkinId | null) || 'titanium'
   );
 
   const changeSkin = useCallback(
     (skinId: ShipSkinId) => {
       soundEngine.playUiClick();
       setActiveSkin(skinId);
-      try {
-        localStorage.setItem(SHIP_SKIN_STORAGE_KEY, skinId);
-      } catch {}
+      shipSkinRepo.save(skinId);
       sceneRef.current?.setShipSkin(skinId);
       engine.unlockAchievement('skin_collector');
     },

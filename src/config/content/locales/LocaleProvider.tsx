@@ -7,6 +7,7 @@ import {
     type SupportedLocale,
     type TranslationSchema,
 } from './index';
+import { getStorage, SettingsRepository, stringCodec } from '../../../platform/storage/SettingsRepository';
 
 interface LocaleContextValue {
     locale: SupportedLocale;
@@ -14,11 +15,12 @@ interface LocaleContextValue {
     t: TranslationSchema;
 }
 
+const localeRepo = new SettingsRepository<string | null>(getStorage, LOCALE_STORAGE_KEY, () => null, stringCodec<string>());
+
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 const readStoredLocale = (): SupportedLocale => {
-    if (typeof window === 'undefined') return DEFAULT_LOCALE;
-    const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    const storedLocale = localeRepo.load();
     return isSupportedLocale(storedLocale) ? storedLocale : DEFAULT_LOCALE;
 };
 
@@ -30,7 +32,7 @@ export const LocaleProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     }, [locale]);
 
     const setLocale = (nextLocale: SupportedLocale) => {
-        window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
+        localeRepo.save(nextLocale);
         setLocaleState(nextLocale);
     };
 
