@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ProjectedTarget } from './SpaceCombat3DScene';
+import type { ProjectedTarget } from './combatSceneTypes';
 import { EnemyType } from '../../types/game';
 import { Radar, AlertTriangle, Crosshair, ShieldAlert } from 'lucide-react';
 

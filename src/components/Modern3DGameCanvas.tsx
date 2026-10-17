@@ -16,6 +16,7 @@ import { CombatControlsBar } from './game/CombatControlsBar';
 import { WeaponAnnouncementBanner } from './game/WeaponAnnouncementBanner';
 import { PilotTwoBadge } from './game/PilotTwoBadge';
 import { useModern3DGameCanvasController } from '../hooks/useModern3DGameCanvasController';
+import { soundEngine } from '../game/audio/soundEngine';
 
 interface Modern3DGameCanvasProps {
     engine: GameEngine;
@@ -87,8 +88,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                 <SpaceCombatLockOnHUD
                     targets={targetTelemetry.targets}
                     primaryTarget={targetTelemetry.primaryTarget}
-                    weaponMode={view.weaponMode}
-                    isTakingDamage={isTakingDamage}
+                    audio={soundEngine}
                 />
             )}
 

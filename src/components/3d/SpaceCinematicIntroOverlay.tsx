@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { SkipForward, Radio, Shield, Sparkles, Activity } from 'lucide-react';
+import { useIntroKeyboardShortcuts } from '../../hooks/useIntroKeyboardShortcuts';
 
 interface CinematicTelemetry {
   phase: string;
@@ -22,21 +23,7 @@ export const SpaceCinematicIntroOverlay: React.FC<SpaceCinematicIntroOverlayProp
   onSkip,
   onLaunchImmediate,
 }) => {
-  // Listen for Space and Escape keys to skip, and Enter to start directly
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (onLaunchImmediate) onLaunchImmediate();
-        else onSkip();
-      } else if (e.code === 'Space' || e.key === 'Escape') {
-        e.preventDefault();
-        onSkip();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onSkip]);
+  useIntroKeyboardShortcuts(onSkip, onLaunchImmediate);
 
   // If intro telemetry is not active, unmount completely so no div overlays the screen
   if (!telemetry.active) {

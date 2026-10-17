@@ -1,99 +1,37 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ProjectedTarget } from './SpaceCombat3DScene';
-import { EnemyType, WeaponMode } from '../../types/game';
-import { soundEngine } from '../../game/audio/soundEngine';
+import React from 'react';
+import type { ProjectedTarget, TargetLockAudio } from './combatSceneTypes';
+import { EnemyType } from '../../types/game';
+import { useTargetLock } from '../../hooks/useTargetLock';
 import {
-  Crosshair,
   Target,
   Zap,
   AlertOctagon,
   ChevronsDown,
-  Shield,
   Activity,
-  Flame,
 } from 'lucide-react';
 
 interface SpaceCombatLockOnHUDProps {
   targets: ProjectedTarget[];
   primaryTarget: ProjectedTarget | null;
-  weaponMode: WeaponMode;
-  isTakingDamage?: boolean;
+  audio: TargetLockAudio;
 }
-
-export type LockState = 'SEARCHING' | 'ACQUIRING' | 'LOCKED';
 
 export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
   targets,
   primaryTarget,
-  weaponMode,
-  isTakingDamage,
+  audio,
 }) => {
-  // Lock state machine tracking
-  const [lockProgress, setLockProgress] = useState(0); // 0 to 1
-  const [lockState, setLockState] = useState<LockState>('SEARCHING');
-  const lockedTargetIdRef = useRef<string | null>(null);
-  const lastSoundTickRef = useRef<number>(0);
-  const wasFullyLockedRef = useRef<boolean>(false);
-
-  // Update Lock Progress
-  useEffect(() => {
-    let animId: number;
-    let lastTime = performance.now();
-
-    const updateLock = (now: number) => {
-      const dt = Math.min(0.1, (now - lastTime) / 1000);
-      lastTime = now;
-
-      if (!primaryTarget || !primaryTarget.inView) {
-        setLockProgress(0);
-        setLockState('SEARCHING');
-        lockedTargetIdRef.current = null;
-        wasFullyLockedRef.current = false;
-        animId = requestAnimationFrame(updateLock);
-        return;
-      }
-
-      // Check if target changed
-      if (lockedTargetIdRef.current !== primaryTarget.id) {
-        lockedTargetIdRef.current = primaryTarget.id;
-        setLockProgress(0.15);
-        setLockState('ACQUIRING');
-        wasFullyLockedRef.current = false;
-      }
-
-      // Lock acquisition rate (takes ~0.8s to fully lock on)
-      setLockProgress((prev) => {
-        const next = Math.min(1.0, prev + dt * 1.35);
-
-        if (next >= 1.0) {
-          setLockState('LOCKED');
-          if (!wasFullyLockedRef.current) {
-            wasFullyLockedRef.current = true;
-            soundEngine.playTargetLockedAlert();
-          }
-        } else {
-          setLockState('ACQUIRING');
-          // Periodic acquiring beep every 260ms
-          if (now - lastSoundTickRef.current > 260) {
-            lastSoundTickRef.current = now;
-            soundEngine.playTargetAcquiringBeep();
-          }
-        }
-        return next;
-      });
-
-      animId = requestAnimationFrame(updateLock);
-    };
-
-    animId = requestAnimationFrame(updateLock);
-    return () => cancelAnimationFrame(animId);
-  }, [primaryTarget]);
+  const { lockProgress, lockState } = useTargetLock(
+    primaryTarget?.id ?? null,
+    Boolean(primaryTarget?.inView),
+    audio,
+  );
 
   // Lead Aim Offset calculation for projectile deflection
   const leadOffset = primaryTarget
     ? {
-        x: Number.isFinite(primaryTarget.enemyRef?.x) && Number.isFinite(primaryTarget.enemyRef?.startX)
-          ? (primaryTarget.enemyRef.x - primaryTarget.enemyRef.startX) * 0.45
+        x: Number.isFinite(primaryTarget.enemyX) && Number.isFinite(primaryTarget.enemyStartX)
+          ? (primaryTarget.enemyX - primaryTarget.enemyStartX) * 0.45
           : 0,
         y: primaryTarget.isDiving ? 28 : -14,
       }

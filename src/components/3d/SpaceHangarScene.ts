@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Spaceship3D } from './Spaceship3D';
+import { HangarInteractionController } from './HangarInteractionController';
 import { CloneWarsHangar3D } from '../../game/hangar/CloneWarsHangar3D';
 import { HangarFactory } from '../../game/factories/HangarFactory';
 import {
@@ -42,15 +43,11 @@ export class SpaceHangarScene {
   private enginePlumeMaterials: THREE.MeshBasicMaterial[] = [];
 
   // Interaction & Camera
-  private isDragging = false;
-  private previousMousePosition = { x: 0, y: 0 };
-  private orbitSpherical = { radius: 6.4, theta: 0, phi: Math.PI / 2.3 };
+  private interactionController: HangarInteractionController | null = null;
   private activePreset: string = 'default';
   private targetCameraPos = CAMERA_PRESETS.default.position.clone();
   private targetLookAt = CAMERA_PRESETS.default.lookAt.clone();
   private currentLookAt = CAMERA_PRESETS.default.lookAt.clone();
-  private mouseX = 0;
-  private mouseY = 0;
 
   // Hyperdrive Warp Jump state
   private isWarping = false;
@@ -754,7 +751,7 @@ export class SpaceHangarScene {
     this.cinematicProgress = 0;
     this.onIntroCompleteCallback = onComplete || null;
     this.activePreset = 'cinematic';
-    this.isDragging = false;
+    this.interactionController?.stopDragging();
 
     const startPos = this.cameraPositionSpline.getPoint(0);
     const startLook = this.cameraLookAtSpline.getPoint(0);
@@ -879,63 +876,27 @@ export class SpaceHangarScene {
   }
 
   private setupInteractions(container: HTMLElement) {
-    const dom = container;
-
-    const onMouseDown = (e: MouseEvent) => {
-      if (this.isCinematicIntro) {
-        this.skipCinematicIntro();
-        return;
-      }
-      this.isDragging = true;
-      this.previousMousePosition = { x: e.clientX, y: e.clientY };
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      // General subtle parallax for camera
-      const normX = (e.clientX / window.innerWidth) * 2 - 1;
-      const normY = -(e.clientY / window.innerHeight) * 2 + 1;
-      this.mouseX = normX * 0.45;
-      this.mouseY = normY * 0.35;
-
-      // Mouse drag orbital rotation
-      if (this.isDragging) {
-        const deltaX = e.clientX - this.previousMousePosition.x;
-        const deltaY = e.clientY - this.previousMousePosition.y;
-
-        this.orbitSpherical.theta -= deltaX * 0.007;
-        this.orbitSpherical.phi = Math.max(0.3, Math.min(Math.PI / 1.7, this.orbitSpherical.phi - deltaY * 0.007));
-
-        this.previousMousePosition = { x: e.clientX, y: e.clientY };
-
-        // Switch to free orbit if dragged
-        const x = this.orbitSpherical.radius * Math.sin(this.orbitSpherical.phi) * Math.sin(this.orbitSpherical.theta);
-        const y = this.orbitSpherical.radius * Math.cos(this.orbitSpherical.phi);
-        const z = this.orbitSpherical.radius * Math.sin(this.orbitSpherical.phi) * Math.cos(this.orbitSpherical.theta);
-
+    this.interactionController = new HangarInteractionController(container, {
+      isCinematicIntroActive: () => this.isCinematicIntro,
+      onSkipCinematicIntro: () => this.skipCinematicIntro(),
+      onParallaxChange: (mouseX, mouseY) => {
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+      },
+      onOrbitChange: ([x, y, z], lookAtOrigin) => {
         this.targetCameraPos.set(x, y, z);
-        this.targetLookAt.set(0, 0, 0);
-      }
-    };
-
-    const onMouseUp = () => {
-      this.isDragging = false;
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      this.orbitSpherical.radius = Math.max(3.0, Math.min(10.0, this.orbitSpherical.radius + e.deltaY * 0.005));
-      const x = this.orbitSpherical.radius * Math.sin(this.orbitSpherical.phi) * Math.sin(this.orbitSpherical.theta);
-      const y = this.orbitSpherical.radius * Math.cos(this.orbitSpherical.phi);
-      const z = this.orbitSpherical.radius * Math.sin(this.orbitSpherical.phi) * Math.cos(this.orbitSpherical.theta);
-      this.targetCameraPos.set(x, y, z);
-    };
-
-    dom.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    dom.addEventListener('wheel', onWheel, { passive: false });
+        if (lookAtOrigin) this.targetLookAt.set(0, 0, 0);
+      },
+    });
     window.addEventListener('resize', this.onResize);
   }
+
+  private get isDragging(): boolean {
+    return this.interactionController?.dragging ?? false;
+  }
+
+  private mouseX = 0;
+  private mouseY = 0;
 
   private onResize = () => {
     const container = this.renderer.domElement.parentElement;
@@ -1115,6 +1076,8 @@ export class SpaceHangarScene {
     if (this.animFrameId !== null) {
       cancelAnimationFrame(this.animFrameId);
     }
+    this.interactionController?.dispose();
+    this.interactionController = null;
     window.removeEventListener('resize', this.onResize);
     this.hangar3D?.dispose();
 

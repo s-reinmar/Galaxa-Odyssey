@@ -1,31 +1,16 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { GameEngine, Enemy, Bullet, Bomb, PowerUp, Particle, PlayerState } from '../../game/GameEngine';
-import { EnemyType, WeaponMode, PowerUpType, GameState } from '../../types/game';
+import type { Bomb, Bullet, Enemy, PlayerState, PowerUp } from '../../game/entities/GameEntities';
+import { EnemyType } from '../../types/game';
 import { GAME_WIDTH, GAME_HEIGHT, LASER_BEAM_WIDTH } from '../../game/constants';
 import { ShipSkinId } from './SpaceHangarScene';
 import { Spaceship3D } from './Spaceship3D';
+import { CombatEntityFactory } from './CombatEntityFactory';
+import { CombatTargetProjector } from './CombatTargetProjector';
+import { CAMERA_VIEW_STRATEGIES, COMBAT_SKIN_PALETTES } from './combatSceneTypes';
+import type { CameraViewMode, CombatSceneSource, ProjectedTarget } from './combatSceneTypes';
 
-export type CameraViewMode = 'CHASE_3D' | 'TACTICAL_3D' | 'COCKPIT_3D';
-
-export interface ProjectedTarget {
-  id: string;
-  type: EnemyType;
-  screenX: number;
-  screenY: number;
-  screenPercentX: number;
-  screenPercentY: number;
-  inView: boolean;
-  distanceUnits: number;
-  distanceMeters: number;
-  relativeVelocity: number;
-  radarX: number;
-  radarZ: number;
-  hp: number;
-  maxHp: number;
-  isDiving: boolean;
-  enemyRef: Enemy;
-}
+export type { CameraViewMode, ProjectedTarget } from './combatSceneTypes';
 
 export class SpaceCombat3DScene {
   private container: HTMLElement;
@@ -137,6 +122,8 @@ export class SpaceCombat3DScene {
   private bulletMeshMap = new Map<Bullet, THREE.Mesh>();
   private bombMeshMap = new Map<Bomb, THREE.Group>();
   private powerUpMeshMap = new Map<PowerUp, THREE.Group>();
+  private readonly entityFactory: CombatEntityFactory;
+  private readonly targetProjector = new CombatTargetProjector();
 
   // Debris & Particle system
   private particleMeshGroup: THREE.Group;
@@ -169,9 +156,14 @@ export class SpaceCombat3DScene {
   private p2ArmorMaterials: THREE.MeshStandardMaterial[] = [];
   private p2CockpitMaterial: THREE.MeshPhysicalMaterial | null = null;
 
-  constructor(container: HTMLElement, initialSkin: ShipSkinId = 'titanium') {
+  constructor(
+    container: HTMLElement,
+    initialSkin: ShipSkinId = 'titanium',
+    entityFactory = new CombatEntityFactory(),
+  ) {
     this.container = container;
     this.activeSkinId = initialSkin;
+    this.entityFactory = entityFactory;
     this.clock = new THREE.Clock();
 
     // 1. Renderer Setup
@@ -611,37 +603,8 @@ export class SpaceCombat3DScene {
 
   // Re-apply skin livery colors when not flashing
   private applyLiveries() {
-    let hullColor = 0x0f172a;
-    let armorColor = 0x1e293b;
-    let trimColor = 0x38bdf8;
-    let cockpitColor = 0x0284c7;
-
-    switch (this.activeSkinId) {
-      case 'stealth':
-        hullColor = 0x050508;
-        armorColor = 0x0f0f15;
-        trimColor = 0x818cf8;
-        cockpitColor = 0x4f46e5;
-        break;
-      case 'titanium':
-        hullColor = 0x1e293b;
-        armorColor = 0x334155;
-        trimColor = 0x38bdf8;
-        cockpitColor = 0x0284c7;
-        break;
-      case 'cyberpunk':
-        hullColor = 0x18181b;
-        armorColor = 0x27272a;
-        trimColor = 0xf43f5e;
-        cockpitColor = 0xf59e0b;
-        break;
-      case 'hyperion':
-        hullColor = 0xf8fafc;
-        armorColor = 0xe2e8f0;
-        trimColor = 0xeab308;
-        cockpitColor = 0x06b6d4;
-        break;
-    }
+    const { hull: hullColor, armor: armorColor, trim: trimColor, cockpit: cockpitColor } =
+      COMBAT_SKIN_PALETTES[this.activeSkinId];
 
     for (const mat of this.hullMaterials) {
       mat.color.setHex(hullColor);
@@ -994,159 +957,6 @@ export class SpaceCombat3DScene {
     return { group, core, glow, rings };
   }
 
-  // 3D Enemy Models
-  private createEnemy3DMesh(type: EnemyType): THREE.Group {
-    const group = new THREE.Group();
-    const isElite = type === EnemyType.ELITE;
-
-    const baseColor = isElite ? 0x9333ea : 0xef4444;
-    const accentColor = isElite ? 0xf43f5e : 0xf59e0b;
-
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: baseColor,
-      metalness: 0.85,
-      roughness: 0.25,
-      emissive: accentColor,
-      emissiveIntensity: 0.35,
-    });
-
-    const glowMat = new THREE.MeshBasicMaterial({
-      color: accentColor,
-      transparent: true,
-      opacity: 0.9,
-    });
-
-    if (isElite) {
-      // Heavy Dreadnought Cruiser
-      const mainGeom = new THREE.BoxGeometry(1.6, 0.6, 1.8);
-      const main = new THREE.Mesh(mainGeom, bodyMat);
-      group.add(main);
-
-      // Angled Prow Blades
-      const bladeGeom = new THREE.ConeGeometry(0.5, 1.4, 4);
-      const leftBlade = new THREE.Mesh(bladeGeom, bodyMat);
-      leftBlade.rotation.x = -Math.PI / 2;
-      leftBlade.position.set(0.9, 0, -0.6);
-      group.add(leftBlade);
-
-      const rightBlade = leftBlade.clone();
-      rightBlade.position.x = -0.9;
-      group.add(rightBlade);
-
-      // Rotating Alien Core
-      const coreGeom = new THREE.OctahedronGeometry(0.45, 0);
-      const core = new THREE.Mesh(coreGeom, glowMat);
-      core.position.set(0, 0.35, 0);
-      group.add(core);
-
-      // Twin Plasma Turbines
-      const turbineGeom = new THREE.CylinderGeometry(0.18, 0.24, 0.8, 10);
-      const t1 = new THREE.Mesh(turbineGeom, glowMat);
-      t1.rotation.x = Math.PI / 2;
-      t1.position.set(0.5, 0, 1.0);
-      group.add(t1);
-
-      const t2 = t1.clone();
-      t2.position.x = -0.5;
-      group.add(t2);
-    } else {
-      // Standard Aggressive Stinger Drone
-      const geom = new THREE.TetrahedronGeometry(1.0, 1);
-      const drone = new THREE.Mesh(geom, bodyMat);
-      drone.rotation.x = Math.PI;
-      drone.scale.set(1.2, 0.6, 1.4);
-      group.add(drone);
-
-      // Bio-mechanical Visor Eye
-      const eyeGeom = new THREE.BoxGeometry(0.6, 0.14, 0.14);
-      const eye = new THREE.Mesh(eyeGeom, glowMat);
-      eye.position.set(0, 0, -0.7);
-      group.add(eye);
-    }
-
-    return group;
-  }
-
-  // 3D Energy Projectiles
-  private createBulletMesh(colorHex: number, isPlayer: boolean): THREE.Mesh {
-    const geom = new THREE.CylinderGeometry(0.08, 0.08, isPlayer ? 1.4 : 1.0, 8);
-    const mat = new THREE.MeshBasicMaterial({
-      color: colorHex,
-      transparent: true,
-      opacity: 0.95,
-      blending: THREE.AdditiveBlending,
-    });
-    const bullet = new THREE.Mesh(geom, mat);
-    bullet.rotation.x = Math.PI / 2;
-    return bullet;
-  }
-
-  // 3D Orbital Mine / Bomb
-  private createBombMesh(): THREE.Group {
-    const group = new THREE.Group();
-    const coreGeom = new THREE.SphereGeometry(0.55, 12, 12);
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: 0xef4444,
-      emissive: 0xff0000,
-      emissiveIntensity: 0.8,
-      metalness: 0.9,
-      roughness: 0.1,
-    });
-    const core = new THREE.Mesh(coreGeom, coreMat);
-    group.add(core);
-
-    // Spikes
-    const spikeGeom = new THREE.ConeGeometry(0.12, 0.6, 6);
-    const spikeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    for (let i = 0; i < 6; i++) {
-      const spike = new THREE.Mesh(spikeGeom, spikeMat);
-      const angle = (i / 6) * Math.PI * 2;
-      spike.position.set(Math.cos(angle) * 0.55, Math.sin(angle) * 0.55, 0);
-      spike.rotation.z = angle - Math.PI / 2;
-      group.add(spike);
-    }
-    return group;
-  }
-
-  // 3D Holographic Token Power-Up
-  private createPowerUpMesh(type: PowerUpType): THREE.Group {
-    const group = new THREE.Group();
-
-    let colorHex = 0x38bdf8;
-    if (type === PowerUpType.TOKEN_TRIPLE_SHOT) colorHex = 0xfbbf24;
-    else if (type === PowerUpType.TOKEN_LASER_BEAM) colorHex = 0xff37a6;
-    else if (type === PowerUpType.TOKEN_PLASMA_SPREAD) colorHex = 0xc084fc;
-    else if (type === PowerUpType.EXTRA_LIFE) colorHex = 0x4ade80;
-
-    // Glowing Hexagonal Hologram Crystal
-    const hexGeom = new THREE.CylinderGeometry(0.65, 0.65, 0.25, 6);
-    const hexMat = new THREE.MeshStandardMaterial({
-      color: colorHex,
-      emissive: colorHex,
-      emissiveIntensity: 0.75,
-      metalness: 0.95,
-      roughness: 0.1,
-      transparent: true,
-      opacity: 0.88,
-    });
-    const token = new THREE.Mesh(hexGeom, hexMat);
-    token.rotation.x = Math.PI / 2;
-    group.add(token);
-
-    // Rotating Energy Ring
-    const ringGeom = new THREE.TorusGeometry(0.9, 0.05, 8, 24);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: colorHex,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-    });
-    const ring = new THREE.Mesh(ringGeom, ringMat);
-    group.add(ring);
-
-    return group;
-  }
-
   // Map 2D Coordinates (800x600) to 3D Space
   // GAME_WIDTH = 800, GAME_HEIGHT = 600
   // Player at bottom y: 530 -> 3D Z: 0.0 (near camera)
@@ -1160,8 +970,8 @@ export class SpaceCombat3DScene {
     return new THREE.Vector3(threeX, 0, threeZ);
   }
 
-  // Main Frame Synchronizer with GameEngine
-  public syncWithEngine(engine: GameEngine) {
+  // Synchronize the scene with the current combat state.
+  public syncWithFrame(engine: CombatSceneSource) {
     const delta = this.clock.getDelta();
     const time = this.clock.getElapsedTime();
 
@@ -1437,26 +1247,9 @@ export class SpaceCombat3DScene {
     // 8. Dynamic Camera Positioning based on View Mode
     if (!this.isWarpJumping) {
       const p1Pos = this.playerShipGroup.position;
-
-      switch (this.viewMode) {
-        case 'CHASE_3D':
-          // Behind-the-ship dynamic 3rd person chase view
-          this.targetCameraPos.set(p1Pos.x * 0.55, 3.8, p1Pos.z - 7.5);
-          this.targetLookAt.set(p1Pos.x * 0.45, 0.6, p1Pos.z + 18.0);
-          break;
-
-        case 'COCKPIT_3D':
-          // Close tight chase view right over canopy
-          this.targetCameraPos.set(p1Pos.x, 1.25, p1Pos.z - 1.8);
-          this.targetLookAt.set(p1Pos.x, 0.8, p1Pos.z + 24.0);
-          break;
-
-        case 'TACTICAL_3D':
-          // High panoramic tactical combat angle
-          this.targetCameraPos.set(p1Pos.x * 0.2, 14.5, p1Pos.z - 8.0);
-          this.targetLookAt.set(p1Pos.x * 0.1, 0, 10.0);
-          break;
-      }
+      const strategy = CAMERA_VIEW_STRATEGIES[this.viewMode];
+      this.targetCameraPos.set(...strategy.getCameraPosition(p1Pos.x, p1Pos.z));
+      this.targetLookAt.set(...strategy.getLookAt(p1Pos.x, p1Pos.z));
 
       this.currentCameraPos.lerp(this.targetCameraPos, delta * 6.5);
       this.currentLookAt.lerp(this.targetLookAt, delta * 7.5);
@@ -1499,7 +1292,7 @@ export class SpaceCombat3DScene {
     for (const enemy of engine.enemies) {
       let group = this.enemyMeshMap.get(enemy);
       if (!group) {
-        group = this.createEnemy3DMesh(enemy.type);
+        group = this.entityFactory.createEnemy(enemy.type);
         this.scene.add(group);
         this.enemyMeshMap.set(enemy, group);
       }
@@ -1535,7 +1328,7 @@ export class SpaceCombat3DScene {
         else if (bullet.color === '#fbbf24') colorHex = 0xfbbf24;
         else if (bullet.color === '#c084fc') colorHex = 0xc084fc;
 
-        mesh = this.createBulletMesh(colorHex, bullet.isFromPlayer);
+        mesh = this.entityFactory.createBullet(colorHex, bullet.isFromPlayer);
         this.scene.add(mesh);
         this.bulletMeshMap.set(bullet, mesh);
       }
@@ -1556,7 +1349,7 @@ export class SpaceCombat3DScene {
     for (const bomb of engine.bombs) {
       let group = this.bombMeshMap.get(bomb);
       if (!group) {
-        group = this.createBombMesh();
+        group = this.entityFactory.createBomb();
         this.scene.add(group);
         this.bombMeshMap.set(bomb, group);
       }
@@ -1579,7 +1372,7 @@ export class SpaceCombat3DScene {
     for (const powerUp of engine.powerUps) {
       let group = this.powerUpMeshMap.get(powerUp);
       if (!group) {
-        group = this.createPowerUpMesh(powerUp.type);
+        group = this.entityFactory.createPowerUp(powerUp.type);
         this.scene.add(group);
         this.powerUpMeshMap.set(powerUp, group);
       }
@@ -1694,105 +1487,14 @@ export class SpaceCombat3DScene {
     this.animFrameId = requestAnimationFrame(this.animate);
   };
 
-  public getProjectedTargetData(engine: GameEngine): {
+  public getProjectedTargetData(engine: CombatSceneSource): {
     targets: ProjectedTarget[];
     primaryTarget: ProjectedTarget | null;
   } {
-    const targets: ProjectedTarget[] = [];
-    if (!engine || !engine.enemies || engine.enemies.length === 0) {
-      return { targets: [], primaryTarget: null };
-    }
-
-    const p1X = engine?.player1 ? (Number.isFinite(engine.player1.x) ? engine.player1.x : GAME_WIDTH / 2) : GAME_WIDTH / 2;
-    const p1Width = engine?.player1 ? (Number.isFinite(engine.player1.width) ? engine.player1.width : 40) : 40;
-    const p1Y = engine?.player1 ? (Number.isFinite(engine.player1.y) ? engine.player1.y : 530) : 530;
-
-    const fallbackP1Pos = this.map2Dto3D(p1X + p1Width / 2, p1Y);
-    const p1Pos =
-      this.playerShipGroup &&
-      Number.isFinite(this.playerShipGroup.position.x) &&
-      Number.isFinite(this.playerShipGroup.position.z)
-        ? this.playerShipGroup.position
-        : fallbackP1Pos;
-
-    const canvasWidth = this.container.clientWidth || 1000;
-    const canvasHeight = this.container.clientHeight || 640;
-
-    let bestScore = Infinity;
-    let primaryTarget: ProjectedTarget | null = null;
-
-    for (let i = 0; i < engine.enemies.length; i++) {
-      const enemy = engine.enemies[i];
-      if (!enemy) continue;
-
-      const enemyX = Number.isFinite(enemy.x) ? enemy.x : (enemy.startX ?? GAME_WIDTH / 2);
-      const enemyY = Number.isFinite(enemy.y) ? enemy.y : (enemy.startY ?? 100);
-
-      const pos = this.map2Dto3D(enemyX + 16, enemyY + 16);
-
-      const dx = pos.x - p1Pos.x;
-      const dz = pos.z - p1Pos.z;
-      const safeDx = Number.isFinite(dx) ? dx : 0;
-      const safeDz = Number.isFinite(dz) ? dz : 0;
-      const distUnits = Math.hypot(safeDx, safeDz);
-      const distMeters = Math.round(distUnits * 32 + 120);
-
-      // Closing velocity in m/s (negative means closing in)
-      const relativeVel = enemy.diving ? -145 : -38;
-
-      // Project into 3D camera screen space
-      const v = pos.clone();
-      v.y = 0.3; // enemy hull center
-      v.project(this.camera);
-
-      const inFront = Number.isFinite(v.z) && v.z < 1.0;
-      const safeVx = Number.isFinite(v.x) ? v.x : 0;
-      const safeVy = Number.isFinite(v.y) ? v.y : 0;
-      const screenX = ((safeVx + 1) / 2) * canvasWidth;
-      const screenY = ((-safeVy + 1) / 2) * canvasHeight;
-      const screenPercentX = ((safeVx + 1) / 2) * 100;
-      const screenPercentY = ((-safeVy + 1) / 2) * 100;
-      const inView = inFront && safeVx >= -1.15 && safeVx <= 1.15 && safeVy >= -1.15 && safeVy <= 1.15;
-
-      // Normalized radar relative coordinates (-1..1 horizontal, 0..1 downrange)
-      const radarX = THREE.MathUtils.clamp(safeDx / 12, -1, 1);
-      const radarZ = THREE.MathUtils.clamp(safeDz / 26, 0, 1);
-
-      const safeEnemyStartX = Number.isFinite(enemy.startX) ? Math.round(enemy.startX) : i;
-
-      const projected: ProjectedTarget = {
-        id: `tgt-${enemy.type}-${safeEnemyStartX}-${i}`,
-        type: enemy.type,
-        screenX,
-        screenY,
-        screenPercentX,
-        screenPercentY,
-        inView,
-        distanceUnits: distUnits,
-        distanceMeters: distMeters,
-        relativeVelocity: relativeVel,
-        radarX: Number.isFinite(radarX) ? radarX : 0,
-        radarZ: Number.isFinite(radarZ) ? radarZ : 0.5,
-        hp: Number.isFinite(enemy.hp) ? enemy.hp : 1,
-        maxHp: Number.isFinite(enemy.maxHp) ? enemy.maxHp : 1,
-        isDiving: !!enemy.diving,
-        enemyRef: enemy,
-      };
-
-      targets.push(projected);
-
-      // Boresight lock scoring: prioritize targets closest to forward firing axis
-      let score = Math.abs(safeDx) * 2.2 + distUnits * 0.8;
-      if (enemy.diving) score -= 8.0; // Urgent diving threat
-      if (enemy.type === EnemyType.ELITE) score -= 3.0;
-
-      if (score < bestScore) {
-        bestScore = score;
-        primaryTarget = projected;
-      }
-    }
-
-    return { targets, primaryTarget };
+    return this.targetProjector.project(engine, this.camera, this.playerShipGroup.position, {
+      width: this.container.clientWidth,
+      height: this.container.clientHeight,
+    });
   }
 
   public dispose() {

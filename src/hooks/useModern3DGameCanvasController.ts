@@ -4,7 +4,7 @@ import { soundEngine } from '../game/audio/soundEngine';
 import { useCombatScene } from './useCombatScene';
 import { useCombatShortcuts } from './useCombatShortcuts';
 import { useGameLoop } from './useGameLoop';
-import type { CameraViewMode, ProjectedTarget } from '../components/3d/SpaceCombat3DScene';
+import type { CameraViewMode, ProjectedTarget } from '../components/3d/combatSceneTypes';
 import type { ShipSkinId } from '../components/3d/SpaceHangarScene';
 import type { WeaponMode } from '../types/game';
 import { calculateCombatHudMetrics } from '../game/services/combatHudMetrics';
@@ -45,7 +45,7 @@ export function useModern3DGameCanvasController({
         const scene = sceneRef.current;
         if (!scene) return;
 
-        scene.syncWithEngine(eng);
+        scene.syncWithFrame(eng);
         setIsWarpActive(scene.isWarpJumping);
 
         const now = performance.now();
