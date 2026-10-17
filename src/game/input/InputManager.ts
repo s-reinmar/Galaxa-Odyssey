@@ -87,6 +87,11 @@ export class InputManager implements IPlayerIntentProvider {
         };
     }
 
+    /** Call once per frame so polled devices can raise their discrete commands. */
+    public poll(): void {
+        this.sources.forEach((source) => source.poll?.(this.isTwoPlayer));
+    }
+
     public reset() {
         this.sources.forEach((source) => source.reset());
     }

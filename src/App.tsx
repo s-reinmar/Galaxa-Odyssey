@@ -5,6 +5,7 @@ import { TouchControls } from './components/TouchControls';
 import { Modern3DMenu } from './components/Modern3DMenu';
 import { AchievementsOverlay } from './components/AchievementsOverlay';
 import { AchievementToast } from './components/AchievementToast';
+import { usePlatform } from './platform/PlatformContext';
 import { useUiSound } from './platform/audio/useUiSound';
 import { GameState } from './types/game';
 import { shipSkinRepo, StorageService } from './game/persistence/StorageService';
@@ -20,7 +21,8 @@ export const App: React.FC = () => {
   const [, setTick] = useState(0);
   const forceUpdate = () => setTick((t) => t + 1);
 
-  const engine = useMemo(() => new GameEngine(forceUpdate), []);
+  const platform = usePlatform();
+  const engine = useMemo(() => new GameEngine(forceUpdate, platform), [platform]);
 
   const { isFullscreen, toggleFullscreen } = useFullscreenManager(engine.twoPlayerMode);
 

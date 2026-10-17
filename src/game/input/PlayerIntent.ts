@@ -1,4 +1,4 @@
-import type { PlayerIntent } from '../../types/input';
+import type { PlayerIntent, PlayerSlot } from '../../types/input';
 
 /** Pressed state of one device for one player, in game space (left = decreasing x, up = up the screen). */
 export interface DigitalInput {
@@ -9,6 +9,9 @@ export interface DigitalInput {
     fire: boolean;
     roll: boolean;
 }
+
+/** Player 1's horizontal controls are mirrored in game space, as they always were; player 2's are not. */
+export const MIRROR_X: Readonly<Record<PlayerSlot, boolean>> = { 1: true, 2: false };
 
 export const IDLE_INPUT: DigitalInput = Object.freeze({
     left: false,

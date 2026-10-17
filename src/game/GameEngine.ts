@@ -6,7 +6,9 @@ import {
     GameEngineSnapshot,
 } from '../types/game';
 import { AchievementProgress } from '../types/achievements';
-import { GameAudioService } from './audio/GameAudioService';
+import type { IGameAudio } from './audio/IGameAudio';
+import { createWebPlatform, type PlatformServices } from '../platform/PlatformServices';
+import { setStorage } from '../platform/storage/SettingsRepository';
 import { InputManager } from './input/InputManager';
 import { StorageService } from './persistence/StorageService';
 import { AchievementManager, ActiveAchievementToast } from './systems/AchievementManager';
@@ -82,21 +84,30 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     public weaponAnnouncement: WeaponAnnouncement | null = null;
 
     // Podsystemy domenowe (SRP)
-    private readonly _inputManager = new InputManager();
-    private readonly _audioService = new GameAudioService();
+    private readonly _inputManager: InputManager;
+    private readonly _audioService: IGameAudio;
     private readonly _achievementManager: AchievementManager;
-    private readonly _particleSystem = new ParticleSystem();
-    private readonly _weaponSystem = new WeaponSystem(this._audioService);
+    private readonly _particleSystem: ParticleSystem;
+    private readonly _weaponSystem: WeaponSystem;
     private readonly _waveSystem = new WaveSystem();
     private readonly _collisionSystem = new CollisionSystem();
-    private readonly _collisionOutcomeHandler = new CollisionOutcomeHandler(this._audioService);
-    private readonly _upgradeSystem = new UpgradeSystem(this._audioService);
-    private readonly _playerController = new PlayerController(this._inputManager);
+    private readonly _collisionOutcomeHandler: CollisionOutcomeHandler;
+    private readonly _upgradeSystem: UpgradeSystem;
+    private readonly _playerController: PlayerController;
 
     private onStateChange?: () => void;
 
-    constructor(onStateChange?: () => void) {
+    /** The platform supplies storage, audio and input devices; defaults to the web platform. */
+    constructor(onStateChange?: () => void, platform: PlatformServices = createWebPlatform()) {
         this.onStateChange = onStateChange;
+        setStorage(platform.storage);
+        this._audioService = platform.audio;
+        this._inputManager = new InputManager(platform.createInputSources());
+        this._playerController = new PlayerController(this._inputManager);
+        this._particleSystem = new ParticleSystem();
+        this._weaponSystem = new WeaponSystem(this._audioService);
+        this._collisionOutcomeHandler = new CollisionOutcomeHandler(this._audioService);
+        this._upgradeSystem = new UpgradeSystem(this._audioService);
 
         this._achievementManager = new AchievementManager(
             () => this.notifyChange(),
@@ -470,6 +481,7 @@ export class GameEngine implements ICollisionContext, IUpgradeContext {
     // --- GŁÓWNA PĘTLA SYMULACJI ---
 
     public update(): void {
+        this._inputManager.poll();
         this._particleSystem.updateStars();
 
         if (this.weaponAnnouncement) {

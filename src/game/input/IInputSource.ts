@@ -19,6 +19,8 @@ export interface InputCommands {
 export interface IInputSource {
     getInput(slot: PlayerSlot, isTwoPlayer: boolean): DigitalInput;
     connect(commands: InputCommands): void;
+    /** Optional per-frame hook for devices that must be polled (gamepads). */
+    poll?(isTwoPlayer: boolean): void;
     reset(): void;
     dispose(): void;
 }

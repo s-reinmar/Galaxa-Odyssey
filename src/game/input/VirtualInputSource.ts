@@ -1,13 +1,10 @@
 import type { PlayerSlot, VirtualButtonAction } from '../../types/input';
-import { IDLE_INPUT, type DigitalInput } from './PlayerIntent';
+import { IDLE_INPUT, MIRROR_X, type DigitalInput } from './PlayerIntent';
 import type { IInputSource, InputCommands } from './IInputSource';
 
 type ButtonState = Record<VirtualButtonAction, boolean>;
 
 const idleButtons = (): ButtonState => ({ left: false, right: false, up: false, down: false, fire: false, roll: false });
-
-/** Player 1's on-screen left/right are mirrored in game space, as they always were; player 2's are not. */
-const MIRROR_X: Record<PlayerSlot, boolean> = { 1: true, 2: false };
 
 /** Device-agnostic on-screen buttons; also the entry point for gamepad or native bridges that press "virtual" buttons. */
 export class VirtualInputSource implements IInputSource {
