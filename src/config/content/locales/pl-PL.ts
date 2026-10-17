@@ -287,7 +287,7 @@ export const plPL = {
     },
     diagnosticsTab: {
         resetLocalPilotProfile: 'Zresetować lokalny profil pilota i osiągnięcia?',
-        systemDiagnosticsAudio: 'DIAGNOSTYKA SYSTEMU I AUDIO',
+        systemDiagnosticsAudio: 'Ustawienia',
         audioSynthesizer: 'SYNTEZATOR DŹWIĘKU',
         weaponLasersThrustersEngine: 'Lasery, silniki manewrowe i dźwięki napędu',
         online: 'AKTYWNE',
@@ -331,7 +331,7 @@ export const plPL = {
         weaponTiersShipSkins: 'Poziomy broni, malowania statku i ulepszenia tarcz',
         badgesAchievements: 'ODZNAKI I OSIĄGNIĘCIA',
         inspect31UnlockedMedals: 'Przeglądaj 31 odblokowanych medali, odznak lotniczych i wyróżnień',
-        diagnostics: 'DIAGNOSTYKA',
+        diagnostics: 'Ustawienia',
         flightManual: 'PODRĘCZNIK LOTU',
     },
     manualTab: {

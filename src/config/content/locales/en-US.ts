@@ -289,7 +289,7 @@ export const enUS: TranslationSchema = {
     },
     diagnosticsTab: {
         resetLocalPilotProfile: 'Reset local pilot profile and achievements?',
-        systemDiagnosticsAudio: 'SYSTEM DIAGNOSTICS & AUDIO',
+        systemDiagnosticsAudio: 'Settings',
         audioSynthesizer: 'AUDIO SYNTHESIZER',
         weaponLasersThrustersEngine: 'Weapon lasers, thrusters & engine chimes',
         online: 'ONLINE',
@@ -333,7 +333,7 @@ export const enUS: TranslationSchema = {
         weaponTiersShipSkins: 'Weapon tiers, ship skins & shield upgrades',
         badgesAchievements: 'BADGES & ACHIEVEMENTS',
         inspect31UnlockedMedals: 'Inspect 31 unlocked medals, flight badges & honors',
-        diagnostics: 'DIAGNOSTICS',
+        diagnostics: 'Settings',
         flightManual: 'FLIGHT MANUAL',
     },
     manualTab: {
