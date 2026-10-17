@@ -1,24 +1,12 @@
-import * as THREE from 'three';
+import type { IHangarSceneEntity } from '../contracts/IHangarSceneEntity';
+
+export type { IHangarSceneEntity } from '../contracts/IHangarSceneEntity';
 
 export type LaunchPhase = 'DOCKED' | 'ALIGNING' | 'DOORS_OPENING' | 'ACCELERATING' | 'LAUNCHED';
 
 export interface LaunchSequenceListener {
     onPhaseChange?: (phase: LaunchPhase) => void;
     onLaunchComplete?: () => void;
-}
-
-/**
- * Kontrakt encji sceny hangaru obsługiwanej przez kontroler startowy
- */
-export interface IHangarSceneEntity {
-    getMesh(): THREE.Group;
-    getLandingPad(): THREE.Group;
-    setGateOpen(isOpen: boolean): void;
-    isGateCleared(): boolean;
-    alignPadToForward(deltaTime: number, speed?: number): boolean;
-    resetPadRotation(): void;
-    update(deltaTime: number, rotatePad?: boolean): void;
-    dispose(): void;
 }
 
 /**
