@@ -1,11 +1,9 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React from 'react';
 import { GameEngine } from '../game/GameEngine';
-import { CameraViewMode, ProjectedTarget } from './3d/SpaceCombat3DScene';
 import { SpaceCombatRadar } from './3d/SpaceCombatRadar';
 import { SpaceCombatLockOnHUD } from './3d/SpaceCombatLockOnHUD';
-import { GameState, WeaponMode } from '../types/game';
+import { GameState } from '../types/game';
 import { MAX_SHIELD, MAX_WEAPON_ENERGY } from '../game/constants';
-import { soundEngine } from '../game/audio/soundEngine';
 import { Camera, Sparkles, Flame, Radio, Radar, Maximize2, Minimize2 } from 'lucide-react';
 import { ShipSkinId } from './3d/SpaceHangarScene';
 import { CockpitHUDOverlay } from './3d/CockpitHUDOverlay';
@@ -15,9 +13,7 @@ import { WeaponSelector } from './game/WeaponSelector';
 import { WarpBanner } from './game/WarpBanner';
 import { PauseOverlay } from './game/PauseOverlay';
 import { GameOverOverlay } from './game/GameOverOverlay';
-import { useGameLoop } from '../hooks/useGameLoop';
-import { useCombatScene } from '../hooks/useCombatScene';
-import { useCombatShortcuts } from '../hooks/useCombatShortcuts';
+import { useModern3DGameCanvasController } from '../hooks/useModern3DGameCanvasController';
 
 interface Modern3DGameCanvasProps {
     engine: GameEngine;
@@ -28,17 +24,6 @@ interface Modern3DGameCanvasProps {
     onToggleFullscreen?: () => void;
 }
 
-const TELEMETRY_INTERVAL_MS = 33;
-const EMPTY_TELEMETRY = { targets: [] as ProjectedTarget[], primaryTarget: null as ProjectedTarget | null };
-
-const VIEW_CYCLE: Record<CameraViewMode, CameraViewMode> = {
-    CHASE_3D: 'COCKPIT_3D',
-    COCKPIT_3D: 'TACTICAL_3D',
-    TACTICAL_3D: 'CHASE_3D',
-};
-
-const percentOf = (value: number, max: number) => Math.max(0, Math.min(100, Math.round((value / max) * 100)));
-
 export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
     engine,
     onStateUpdate,
@@ -47,73 +32,30 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
     isFullscreen = false,
     onToggleFullscreen,
 }) => {
-    const { containerRef, sceneRef } = useCombatScene(selectedSkin);
-    const [viewMode, setViewMode] = useState<CameraViewMode>('CHASE_3D');
-    const [isWarpActive, setIsWarpActive] = useState(false);
-    const [showRadar, setShowRadar] = useState(true);
-    const [targetTelemetry, setTargetTelemetry] = useState(EMPTY_TELEMETRY);
-    const lastTelemetryAt = useRef(0);
-
-    // Logic runs at a fixed 60 Hz inside useGameLoop; this callback only syncs the view.
-    useGameLoop(engine, (eng) => {
-        const scene = sceneRef.current;
-        if (!scene) return;
-
-        scene.syncWithEngine(eng);
-        setIsWarpActive(scene.isWarpJumping);
-
-        const now = performance.now();
-        if (now - lastTelemetryAt.current >= TELEMETRY_INTERVAL_MS) {
-            lastTelemetryAt.current = now;
-            setTargetTelemetry(scene.getProjectedTargetData(eng));
-        }
-    });
-
-    const toggleViewMode = useCallback(() => {
-        soundEngine.playUiClick();
-        setViewMode((prev) => VIEW_CYCLE[prev]);
-    }, []);
-
-    // Keep the 3D scene camera in sync with the selected view mode
-    React.useEffect(() => {
-        sceneRef.current?.setViewMode(viewMode);
-    }, [viewMode, selectedSkin, sceneRef]);
-
-    const toggleRadar = useCallback(() => setShowRadar((prev) => !prev), []);
-
-    useCombatShortcuts({
+    const controller = useModern3DGameCanvasController({
         engine,
         onStateUpdate,
-        onToggleView: toggleViewMode,
-        onToggleRadar: toggleRadar,
+        selectedSkin,
         onReturnToHangar,
         onToggleFullscreen,
     });
-
-    const returnToHangar = () => {
-        if (onReturnToHangar) onReturnToHangar();
-        else engine.returnToMenu();
-        onStateUpdate();
-    };
-
-    const handleSelectWeapon = (mode: WeaponMode) => {
-        if (engine.player1.unlockedWeaponModes.includes(mode)) {
-            soundEngine.playUiClick();
-            engine.setWeaponMode(mode);
-            onStateUpdate();
-        }
-    };
-
-    const handleManualWarpJump = () => {
-        soundEngine.playWarpJump();
-        sceneRef.current?.triggerHyperspaceJump();
-    };
+    const {
+        containerRef,
+        viewMode,
+        isWarpActive,
+        showRadar,
+        targetTelemetry,
+        hudMetrics: { shieldPercent, shieldLagPercent, energyPercent, isTakingDamage },
+        toggleViewMode,
+        handleToggleRadar,
+        handleSelectWeapon,
+        handleManualWarpJump,
+        returnToHangar,
+        handleResume,
+        handleRedeploy,
+    } = controller;
 
     const p1 = engine.player1;
-    const shieldPercent = percentOf(p1.shield, MAX_SHIELD);
-    const shieldLagPercent = Math.max(shieldPercent, percentOf(p1.shieldLag ?? p1.shield, MAX_SHIELD));
-    const energyPercent = percentOf(p1.weaponEnergy, MAX_WEAPON_ENERGY);
-    const isTakingDamage = !!(p1.damageFlash && p1.damageFlash > 0.1);
 
     return (
         <div
@@ -230,10 +172,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/85 backdrop-blur-md border border-slate-800 text-[10px] text-slate-400">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    soundEngine.playUiClick();
-                                    toggleRadar();
-                                }}
+                                onClick={handleToggleRadar}
                                 className={`flex items-center gap-1 font-bold px-1.5 py-0.5 rounded transition ${
                                     showRadar
                                         ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
@@ -299,10 +238,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
             {engine.gameState === GameState.PAUSED && (
                 <PauseOverlay
                     wave={engine.wave}
-                    onResume={() => {
-                        engine.resumeGame();
-                        onStateUpdate();
-                    }}
+                    onResume={handleResume}
                     onToggleView={toggleViewMode}
                     onAbort={returnToHangar}
                 />
@@ -313,11 +249,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                     wave={engine.wave}
                     score={p1.score}
                     credits={engine.credits}
-                    onRedeploy={() => {
-                        engine.startNewGame();
-                        sceneRef.current?.triggerHyperspaceArrival();
-                        onStateUpdate();
-                    }}
+                    onRedeploy={handleRedeploy}
                     onReturn={returnToHangar}
                 />
             )}
