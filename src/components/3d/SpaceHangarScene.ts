@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { Spaceship3D } from './Spaceship3D';
 import { CloneWarsHangar3D } from '../../game/hangar/CloneWarsHangar3D';
-import { HangarFactory } from '../../game/factories/GameEntityFactory';
+import { HangarFactory } from '../../game/factories/HangarFactory';
 import {
     CAMERA_PRESETS,
     SHIP_SKINS,
