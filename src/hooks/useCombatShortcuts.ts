@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { GameState } from '../types/game';
-import { soundEngine } from '../game/audio/soundEngine';
+import { useUiSound } from '../platform/audio/useUiSound';
 
 interface CombatShortcutsOptions {
     engine: GameEngine;
@@ -21,6 +21,7 @@ export function useCombatShortcuts({
     onReturnToHangar,
     onToggleFullscreen,
 }: CombatShortcutsOptions): void {
+    const ui = useUiSound();
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (engine.isAchievementsOpen) {
@@ -35,7 +36,7 @@ export function useCombatShortcuts({
                 if (e.key === 'v' || e.key === 'V') {
                     onToggleView();
                 } else if (e.key === 'r' || e.key === 'R') {
-                    soundEngine.playUiClick();
+                    ui.click();
                     onToggleRadar();
                 } else if ((e.key === 'f' || e.key === 'F') && !engine.twoPlayerMode) {
                     onToggleFullscreen?.();

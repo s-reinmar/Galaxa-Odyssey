@@ -5,7 +5,7 @@ import { UpgradeOption } from '../../types/game';
 import { UPGRADE_CONFIGS } from '../../config/gameplay/balance';
 import { SHIP_SKINS } from '../../config/visuals/hangarVisuals';
 import type { ShipSkinId } from '../../config/visuals/hangarVisuals';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { MenuPanelHeader, ReturnToBridgeButton } from './MenuPanel';
 
@@ -39,6 +39,7 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
   onStateUpdate,
   onBack,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
@@ -101,11 +102,11 @@ export const LoadoutTab: React.FC<LoadoutTabProps> = ({
                 type="button"
                 disabled={owned || engine.credits < u.cost}
                 onClick={() => {
-                  soundEngine.playUiClick();
+                  ui.click();
                   engine.buyUpgrade(u.id);
                   onStateUpdate();
                 }}
-                onMouseEnter={() => soundEngine.playUiHover()}
+                onMouseEnter={() => ui.hover()}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold shrink-0 transition ${
                   owned
                     ? 'bg-slate-800/60 text-slate-500 cursor-not-allowed'

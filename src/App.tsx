@@ -5,7 +5,7 @@ import { TouchControls } from './components/TouchControls';
 import { Modern3DMenu } from './components/Modern3DMenu';
 import { AchievementsOverlay } from './components/AchievementsOverlay';
 import { AchievementToast } from './components/AchievementToast';
-import { soundEngine } from './game/audio/soundEngine';
+import { useUiSound } from './platform/audio/useUiSound';
 import { GameState } from './types/game';
 import { shipSkinRepo, StorageService } from './game/persistence/StorageService';
 import type { ShipSkinId } from './config/visuals/hangarVisuals';
@@ -15,6 +15,7 @@ import { useFullscreenManager } from './hooks/useFullscreenManager';
 import { useLocale } from './config/content/locales/LocaleProvider';
 
 export const App: React.FC = () => {
+  const ui = useUiSound();
   const { t } = useLocale();
   const [, setTick] = useState(0);
   const forceUpdate = () => setTick((t) => t + 1);
@@ -45,7 +46,7 @@ export const App: React.FC = () => {
           unlockedAchievementCount={engine.getUnlockedCount()}
           totalAchievementCount={engine.getTotalCount()}
           onToggleAchievements={() => {
-            soundEngine.playUiClick();
+            ui.click();
             engine.toggleAchievements();
             forceUpdate();
           }}

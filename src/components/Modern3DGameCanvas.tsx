@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import type { GameEngine } from '../game/GameEngine';
 import { SpaceCombatRadar } from './game/hud/SpaceCombatRadar';
 import { SpaceCombatLockOnHUD } from './game/hud/SpaceCombatLockOnHUD';
@@ -16,7 +16,7 @@ import { CombatControlsBar } from './game/CombatControlsBar';
 import { WeaponAnnouncementBanner } from './game/WeaponAnnouncementBanner';
 import { PilotTwoBadge } from './game/PilotTwoBadge';
 import { useModern3DGameCanvasController } from '../hooks/useModern3DGameCanvasController';
-import { soundEngine } from '../game/audio/soundEngine';
+import { useAudioPort } from '../platform/audio/AudioPortContext';
 
 interface Modern3DGameCanvasProps {
     engine: GameEngine;
@@ -35,6 +35,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
     isFullscreen = false,
     onToggleFullscreen,
 }) => {
+    const audio = useAudioPort();
     const {
         containerRef,
         viewMode,
@@ -88,7 +89,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                 <SpaceCombatLockOnHUD
                     targets={targetTelemetry.targets}
                     primaryTarget={targetTelemetry.primaryTarget}
-                    audio={soundEngine}
+                    audio={audio}
                 />
             )}
 

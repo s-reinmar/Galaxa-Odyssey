@@ -1,7 +1,7 @@
 import React from 'react';
 import { Rocket, Users } from 'lucide-react';
 import { DifficultyLevel } from '../../types/game';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import type { TranslationSchema } from '../../config/content/locales';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { MenuPanelHeader } from './MenuPanel';
@@ -44,6 +44,7 @@ export const DeployTab: React.FC<DeployTabProps> = ({
   onStartMission,
   onBack,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
@@ -64,10 +65,10 @@ export const DeployTab: React.FC<DeployTabProps> = ({
           <button
             type="button"
             onClick={() => {
-              soundEngine.playUiClick();
+              ui.click();
               onSelectCoop(false);
             }}
-            onMouseEnter={() => soundEngine.playUiHover()}
+            onMouseEnter={() => ui.hover()}
             className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
               !selectedCoop
                 ? 'border-cyan-400 bg-cyan-950/50 text-white font-bold'
@@ -81,10 +82,10 @@ export const DeployTab: React.FC<DeployTabProps> = ({
           <button
             type="button"
             onClick={() => {
-              soundEngine.playUiClick();
+              ui.click();
               onSelectCoop(true);
             }}
-            onMouseEnter={() => soundEngine.playUiHover()}
+            onMouseEnter={() => ui.hover()}
             className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
               selectedCoop
                 ? 'border-purple-400 bg-purple-950/50 text-white font-bold'
@@ -109,10 +110,10 @@ export const DeployTab: React.FC<DeployTabProps> = ({
               key={diff}
               type="button"
               onClick={() => {
-                soundEngine.playUiClick();
+                ui.click();
                 onSelectDifficulty(diff);
               }}
-              onMouseEnter={() => soundEngine.playUiHover()}
+              onMouseEnter={() => ui.hover()}
               className={`p-2 rounded-xl border text-center transition cursor-pointer ${
                 selectedDifficulty === diff
                   ? `${difficultyColor(diff)} font-bold`
@@ -129,7 +130,7 @@ export const DeployTab: React.FC<DeployTabProps> = ({
       <button
         type="button"
         onClick={onStartMission}
-        onMouseEnter={() => soundEngine.playUiHover()}
+        onMouseEnter={() => ui.hover()}
         disabled={isWarping}
         className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm font-mono tracking-wider rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
       >

@@ -1,7 +1,7 @@
 import { MutableRefObject, useCallback, useState } from 'react';
 import { GameEngine } from '../../game/GameEngine';
 import { DifficultyLevel } from '../../types/game';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useAudioPort } from '../../platform/audio/AudioPortContext';
 import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
 
 interface UseMissionLaunchParams {
@@ -22,18 +22,19 @@ export function useMissionLaunch({
   abortIntroForLaunch,
   onLaunch,
 }: UseMissionLaunchParams) {
+  const audio = useAudioPort();
   const [isWarping, setIsWarping] = useState(false);
 
   const launch = useCallback(
     (beginGame: () => void) => {
       abortIntroForLaunch();
-      soundEngine.stopHangarAmbience();
-      soundEngine.playWarpJump();
+      audio.stopHangarAmbience();
+      audio.playWarpJump();
       setIsWarping(true);
 
       const finish = () => {
-        soundEngine.stopMenuMusic();
-        soundEngine.stopHangarAmbience();
+        audio.stopMenuMusic();
+        audio.stopHangarAmbience();
         beginGame();
         onLaunch();
       };

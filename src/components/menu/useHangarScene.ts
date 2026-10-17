@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SpaceHangarScene } from '../../rendering/three/SpaceHangarScene';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useAudioPort } from '../../platform/audio/AudioPortContext';
 import { INTRO_SEEN_STORAGE_KEY, MenuTab, TAB_CAMERA_PRESET } from './menuTypes';
 
 const markIntroSeen = () => {
@@ -19,6 +19,7 @@ const wasIntroSeen = () => {
 
 /** Owns the Three.js hangar scene lifecycle, the cinematic intro and the camera presets. */
 export function useHangarScene(activeTab: MenuTab) {
+  const audio = useAudioPort();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<SpaceHangarScene | null>(null);
 
@@ -48,14 +49,14 @@ export function useHangarScene(activeTab: MenuTab) {
       setIntroTelemetry({ ...scene.getCinematicTelemetry(), active: true });
       scene.startCinematicIntro(() => {
         finishIntroUi();
-        soundEngine.stopCinematicIntroSoundscape();
-        soundEngine.startHangarAmbience();
+        audio.stopCinematicIntroSoundscape();
+        audio.startHangarAmbience();
         markIntroSeen();
       });
-      soundEngine.playCinematicIntroSoundscape();
+      audio.playCinematicIntroSoundscape();
     } else {
       setIntroTelemetry((prev) => ({ ...prev, active: false }));
-      soundEngine.startHangarAmbience();
+      audio.startHangarAmbience();
     }
 
     const interval = setInterval(() => {
@@ -76,8 +77,8 @@ export function useHangarScene(activeTab: MenuTab) {
     return () => {
       ro.disconnect();
       clearInterval(interval);
-      soundEngine.stopCinematicIntroSoundscape();
-      soundEngine.stopHangarAmbience();
+      audio.stopCinematicIntroSoundscape();
+      audio.stopHangarAmbience();
       scene.dispose();
       sceneRef.current = null;
     };
@@ -91,15 +92,15 @@ export function useHangarScene(activeTab: MenuTab) {
   }, [activeTab]);
 
   const changeCamera = useCallback((preset: string) => {
-    soundEngine.playUiClick();
+    audio.playUiClick();
     setActiveCameraPreset(preset);
     sceneRef.current?.setCameraFocus(preset);
   }, []);
 
   const skipIntro = useCallback(() => {
-    soundEngine.playUiClick();
-    soundEngine.stopCinematicIntroSoundscape();
-    soundEngine.startHangarAmbience();
+    audio.playUiClick();
+    audio.stopCinematicIntroSoundscape();
+    audio.startHangarAmbience();
     finishIntroUi();
     markIntroSeen();
     const scene = sceneRef.current;
@@ -110,25 +111,25 @@ export function useHangarScene(activeTab: MenuTab) {
   }, [finishIntroUi]);
 
   const replayIntro = useCallback(() => {
-    soundEngine.playUiClick();
-    soundEngine.stopHangarAmbience();
+    audio.playUiClick();
+    audio.stopHangarAmbience();
     setIsIntroPlaying(true);
     const scene = sceneRef.current;
     if (scene) {
       setIntroTelemetry({ ...scene.getCinematicTelemetry(), active: true });
       scene.startCinematicIntro(() => {
         finishIntroUi();
-        soundEngine.stopCinematicIntroSoundscape();
-        soundEngine.startHangarAmbience();
+        audio.stopCinematicIntroSoundscape();
+        audio.startHangarAmbience();
       });
-      soundEngine.playCinematicIntroSoundscape();
+      audio.playCinematicIntroSoundscape();
     }
   }, [finishIntroUi]);
 
   /** Silently aborts a running intro right before a mission launch. */
   const abortIntroForLaunch = useCallback(() => {
     if (!isIntroPlaying) return;
-    soundEngine.stopCinematicIntroSoundscape();
+    audio.stopCinematicIntroSoundscape();
     finishIntroUi();
     sceneRef.current?.skipCinematicIntro();
   }, [isIntroPlaying, finishIntroUi]);

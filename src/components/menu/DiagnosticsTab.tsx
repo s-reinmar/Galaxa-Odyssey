@@ -1,7 +1,7 @@
 import React from 'react';
 import { Settings, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { StorageService } from '../../game/persistence/StorageService';
 import { MenuPanelHeader, ReturnToBridgeButton } from './MenuPanel';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
@@ -19,6 +19,7 @@ interface DiagnosticsTabProps {
 }
 
 export const DiagnosticsTab: React.FC<DiagnosticsTabProps> = ({ engine, onStateUpdate, onBack }) => {
+  const ui = useUiSound();
   const { locale, setLocale, t } = useLocale();
   const handleWipeProfile = () => {
     if (window.confirm(t.diagnosticsTab.resetLocalPilotProfile)) {
@@ -53,11 +54,11 @@ export const DiagnosticsTab: React.FC<DiagnosticsTabProps> = ({ engine, onStateU
           <button
             type="button"
             onClick={() => {
-              soundEngine.playUiClick();
+              ui.click();
               engine.toggleAudio();
               onStateUpdate();
             }}
-            onMouseEnter={() => soundEngine.playUiHover()}
+            onMouseEnter={() => ui.hover()}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
               engine.soundEnabled ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'
             }`}
@@ -79,11 +80,11 @@ export const DiagnosticsTab: React.FC<DiagnosticsTabProps> = ({ engine, onStateU
           <button
             type="button"
             onClick={() => {
-              soundEngine.playUiClick();
+              ui.click();
               engine.toggleParticles();
               onStateUpdate();
             }}
-            onMouseEnter={() => soundEngine.playUiHover()}
+            onMouseEnter={() => ui.hover()}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
               engine.particlesEnabled ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400'
             }`}
@@ -101,10 +102,10 @@ export const DiagnosticsTab: React.FC<DiagnosticsTabProps> = ({ engine, onStateU
                 type="button"
                 aria-pressed={locale === option.id}
                 onClick={() => {
-                  soundEngine.playUiClick();
+                  ui.click();
                   setLocale(option.id);
                 }}
-                onMouseEnter={() => soundEngine.playUiHover()}
+                onMouseEnter={() => ui.hover()}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
                   locale === option.id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'
                 }`}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameEngine } from '../game/GameEngine';
-import { soundEngine } from '../game/audio/soundEngine';
+import { useAudioPort } from '../platform/audio/AudioPortContext';
 import { useCombatScene } from './useCombatScene';
 import { useCombatShortcuts } from './useCombatShortcuts';
 import { useGameLoop } from './useGameLoop';
@@ -35,6 +35,7 @@ export function useModern3DGameCanvasController({
     onReturnToHangar,
     onToggleFullscreen,
 }: Modern3DGameCanvasControllerOptions) {
+    const audio = useAudioPort();
     const { locale } = useLocale();
     const { containerRef, sceneRef } = useCombatScene(selectedSkin, locale);
     const [viewMode, setViewMode] = useState<CameraViewMode>('CHASE_3D');
@@ -58,7 +59,7 @@ export function useModern3DGameCanvasController({
     });
 
     const toggleViewMode = useCallback(() => {
-        soundEngine.playUiClick();
+        audio.playUiClick();
         setViewMode((prev) => VIEW_CYCLE[prev]);
     }, []);
 
@@ -68,7 +69,7 @@ export function useModern3DGameCanvasController({
 
     const toggleRadar = useCallback(() => setShowRadar((prev) => !prev), []);
     const handleToggleRadar = useCallback(() => {
-        soundEngine.playUiClick();
+        audio.playUiClick();
         toggleRadar();
     }, [toggleRadar]);
 
@@ -90,13 +91,13 @@ export function useModern3DGameCanvasController({
     const handleSelectWeapon = useCallback((mode: WeaponMode) => {
         if (!engine.player1.unlockedWeaponModes.includes(mode)) return;
 
-        soundEngine.playUiClick();
+        audio.playUiClick();
         engine.setWeaponMode(mode);
         onStateUpdate();
     }, [engine, onStateUpdate]);
 
     const handleManualWarpJump = useCallback(() => {
-        soundEngine.playWarpJump();
+        audio.playWarpJump();
         sceneRef.current?.triggerHyperspaceJump();
     }, [sceneRef]);
 

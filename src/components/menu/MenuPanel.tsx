@@ -1,5 +1,5 @@
 import React from 'react';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 
 interface MenuPanelHeaderProps {
@@ -17,6 +17,7 @@ export const MenuPanelHeader: React.FC<MenuPanelHeaderProps> = ({
   borderClassName = 'pb-2',
   onBack,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
@@ -27,7 +28,7 @@ export const MenuPanelHeader: React.FC<MenuPanelHeaderProps> = ({
       <button
         type="button"
         onClick={() => {
-          soundEngine.playUiClick();
+          ui.click();
           onBack();
         }}
         className="text-xs text-slate-400 hover:text-white font-mono transition cursor-pointer"
@@ -39,13 +40,14 @@ export const MenuPanelHeader: React.FC<MenuPanelHeaderProps> = ({
 };
 
 export const ReturnToBridgeButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
     <button
       type="button"
       onClick={() => {
-        soundEngine.playUiClick();
+        ui.click();
         onClick();
       }}
       className="w-full py-2 bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs rounded-lg hover:bg-slate-800 transition cursor-pointer"

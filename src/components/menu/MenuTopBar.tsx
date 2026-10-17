@@ -1,7 +1,7 @@
 import React from 'react';
 import { Camera, Eye, Film, Trophy } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { TOP_BAR_CAMERA_PRESETS } from './menuTypes';
 
@@ -24,6 +24,7 @@ export const MenuTopBar: React.FC<MenuTopBarProps> = ({
   onToggleCinematicView,
   onOpenAchievements,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
@@ -101,10 +102,10 @@ export const MenuTopBar: React.FC<MenuTopBarProps> = ({
         <button
           type="button"
           onClick={() => {
-            soundEngine.playUiClick();
+            ui.click();
             onOpenAchievements();
           }}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/15 border border-amber-500/50 rounded-lg text-amber-300 hover:bg-amber-500/25 transition cursor-pointer text-xs font-bold"
           title={t.menuTopBar.inspectUnlockedBadges}
         >

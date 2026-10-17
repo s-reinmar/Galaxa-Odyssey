@@ -1,6 +1,6 @@
 import React from 'react';
 import { Rocket } from 'lucide-react';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { CINEMATIC_CAMERA_PRESETS } from './menuTypes';
 
@@ -17,6 +17,7 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
   onExit,
   onStartMission,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
 
   return (
@@ -49,7 +50,7 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
       <button
         type="button"
         onClick={() => {
-          soundEngine.playUiClick();
+          ui.click();
           onExit();
         }}
         className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-700"

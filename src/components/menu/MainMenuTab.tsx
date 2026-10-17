@@ -2,7 +2,7 @@ import React from 'react';
 import { Rocket, Shield, Trophy, ChevronRight, BookOpen, Settings, Users } from 'lucide-react';
 import { GameEngine } from '../../game/GameEngine';
 import { DifficultyLevel } from '../../types/game';
-import { soundEngine } from '../../game/audio/soundEngine';
+import { useUiSound } from '../../platform/audio/useUiSound';
 import { MenuTab } from './menuTypes';
 import type { TranslationSchema } from '../../config/content/locales';
 import { useLocale } from '../../config/content/locales/LocaleProvider';
@@ -35,10 +35,11 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
   onOpenTab,
   onOpenAchievements,
 }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
   const hasSave = engine.hasSavedGame();
   const openTab = (tab: MenuTab) => {
-    soundEngine.playUiClick();
+    ui.click();
     onOpenTab(tab);
   };
 
@@ -60,7 +61,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
         <button
           type="button"
           onClick={onResumeSaved}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="w-full group px-4 py-3 bg-slate-900 hover:bg-slate-800 border border-emerald-500/60 rounded-xl text-left transition-all duration-200 flex items-center justify-between cursor-pointer"
         >
           <div className="flex items-center gap-3">
@@ -84,7 +85,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
       <button
         type="button"
         onClick={onStartMission}
-        onMouseEnter={() => soundEngine.playUiHover()}
+        onMouseEnter={() => ui.hover()}
         disabled={isWarping}
         className="w-full group px-4 py-3.5 bg-cyan-500 hover:bg-cyan-400 border border-cyan-400 rounded-xl text-left transition-all duration-200 flex items-center justify-between cursor-pointer active:scale-98"
       >
@@ -112,10 +113,10 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
         <button
           type="button"
           onClick={() => {
-            soundEngine.playUiClick();
+            ui.click();
             onToggleCoop();
           }}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="px-3 py-2 bg-slate-900/90 border border-slate-700 hover:border-cyan-400/80 rounded-xl flex items-center justify-between text-xs font-mono transition cursor-pointer"
         >
           <span className="text-slate-400 text-[10px]">{t.mainMenuTab.formation}</span>
@@ -126,10 +127,10 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
         <button
           type="button"
           onClick={() => {
-            soundEngine.playUiClick();
+            ui.click();
             onCycleDifficulty();
           }}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="px-3 py-2 bg-slate-900/90 border border-slate-700 hover:border-amber-400/80 rounded-xl flex items-center justify-between text-xs font-mono transition cursor-pointer"
         >
           <span className="text-slate-400 text-[10px]">{t.mainMenuTab.difficulty2}</span>
@@ -140,7 +141,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
       <button
         type="button"
         onClick={() => openTab('loadout')}
-        onMouseEnter={() => soundEngine.playUiHover()}
+        onMouseEnter={() => ui.hover()}
         className="w-full group px-4 py-2.5 bg-slate-950/85 hover:bg-slate-900/90 border border-purple-500/40 rounded-xl text-left transition-all duration-200 flex items-center justify-between cursor-pointer"
       >
         <div className="flex items-center gap-3">
@@ -158,10 +159,10 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
       <button
         type="button"
         onClick={() => {
-          soundEngine.playUiClick();
+          ui.click();
           onOpenAchievements();
         }}
-        onMouseEnter={() => soundEngine.playUiHover()}
+        onMouseEnter={() => ui.hover()}
         className="w-full group px-4 py-2.5 bg-slate-950/85 hover:bg-slate-900/90 border border-amber-500/40 rounded-xl text-left transition-all duration-200 flex items-center justify-between cursor-pointer"
       >
         <div className="flex items-center gap-3">
@@ -185,7 +186,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
         <button
           type="button"
           onClick={() => openTab('diagnostics')}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="px-3 py-2 bg-slate-950/85 hover:bg-slate-900 border border-slate-800 rounded-xl text-left transition text-xs font-mono font-semibold text-slate-300 flex items-center gap-2 cursor-pointer"
         >
           <Settings size={14} className="text-cyan-400 shrink-0" />
@@ -194,7 +195,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
         <button
           type="button"
           onClick={() => openTab('manual')}
-          onMouseEnter={() => soundEngine.playUiHover()}
+          onMouseEnter={() => ui.hover()}
           className="px-3 py-2 bg-slate-950/85 hover:bg-slate-900 border border-slate-800 rounded-xl text-left transition text-xs font-mono font-semibold text-slate-300 flex items-center gap-2 cursor-pointer"
         >
           <BookOpen size={14} className="text-pink-400 shrink-0" />

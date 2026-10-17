@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { DifficultyLevel } from '../types/game';
 import { SpaceCinematicIntroOverlay } from './menu/SpaceCinematicIntroOverlay';
-import { soundEngine } from '../game/audio/soundEngine';
+import { useUiSound } from '../platform/audio/useUiSound';
 import { MenuTab } from './menu/menuTypes';
 import { useHangarScene } from './menu/useHangarScene';
 import { useShipSkin } from './menu/useShipSkin';
@@ -36,6 +36,7 @@ const nextDifficulty = (prev: DifficultyLevel) =>
     : DifficultyLevel.EASY;
 
 export const Modern3DMenu: React.FC<Modern3DMenuProps> = ({ engine, onLaunch, onStateUpdate }) => {
+  const ui = useUiSound();
   const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<MenuTab>('main');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(engine.difficultyLevel);
@@ -57,7 +58,7 @@ export const Modern3DMenu: React.FC<Modern3DMenuProps> = ({ engine, onLaunch, on
   const backToMain = () => setActiveTab('main');
 
   const toggleCinematicView = () => {
-    soundEngine.playUiClick();
+    ui.click();
     setIsCinematicView((prev) => !prev);
   };
 
