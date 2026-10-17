@@ -1,4 +1,5 @@
 import type { Bomb, Enemy } from '../entities/GameEntities';
+import { removeItem } from '../entities/collections';
 import { GameAudioService } from '../audio/GameAudioService';
 import type { IGameAudio } from '../audio/IGameAudio';
 import { SoundType } from '../../types/game';
@@ -89,17 +90,14 @@ export class CollisionOutcomeHandler {
     }
 
     private removeBullet(bullet: ICollisionContext['bullets'][number], ctx: ICollisionContext): void {
-        const index = ctx.bullets.indexOf(bullet);
-        if (index !== -1) ctx.bullets.splice(index, 1);
+        removeItem(ctx.bullets, bullet);
     }
 
     private removeBomb(bomb: Bomb, ctx: ICollisionContext): void {
-        const index = ctx.bombs.indexOf(bomb);
-        if (index !== -1) ctx.bombs.splice(index, 1);
+        removeItem(ctx.bombs, bomb);
     }
 
     private removeEnemy(enemy: Enemy, ctx: ICollisionContext): void {
-        const index = ctx.enemies.indexOf(enemy);
-        if (index !== -1) ctx.enemies.splice(index, 1);
+        removeItem(ctx.enemies, enemy);
     }
 }

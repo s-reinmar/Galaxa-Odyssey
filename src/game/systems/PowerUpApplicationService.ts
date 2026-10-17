@@ -1,6 +1,7 @@
 import { PowerUpType, SoundType, WeaponMode } from '../../types/game';
 import { MAX_SHIELD, MAX_WEAPON_ENERGY } from '../constants';
 import type { PlayerState, PowerUp } from '../entities/GameEntities';
+import { removeItem } from '../entities/collections';
 import { GameAudioService } from '../audio/GameAudioService';
 import type { IGameAudio } from '../audio/IGameAudio';
 import type { ICollisionContext } from './CollisionSystem';
@@ -9,9 +10,7 @@ export class PowerUpApplicationService {
     constructor(private readonly audio: IGameAudio = new GameAudioService()) {}
 
     public collectPowerUp(powerUp: PowerUp, player: PlayerState, ctx: ICollisionContext): void {
-        const index = ctx.powerUps.indexOf(powerUp);
-        if (index === -1) return;
-        ctx.powerUps.splice(index, 1);
+        if (!removeItem(ctx.powerUps, powerUp)) return;
 
         ctx.incrementProgress('power_surge', 1);
         ctx.incrementProgress('token_collector', 1);

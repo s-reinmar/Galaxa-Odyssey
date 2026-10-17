@@ -10,12 +10,22 @@ import {
     ENEMY_HEIGHT,
 } from '../constants';
 import { Bomb, Bullet, Enemy, PowerUp } from '../entities/GameEntities';
+import { updateAndPrune } from '../entities/collections';
+import { isInsideBounds, type IBounds } from '../entities/EntityTraits';
 import {
     DEFAULT_WAVE_ACHIEVEMENT_RULES,
     type IAchievementRule,
     type IAchievementSink,
 } from '../waves/WaveAchievementRules';
 import { DEFAULT_ENEMY_ROW_RULES, resolveEnemyType, type EnemyRowRule } from '../waves/EnemyRowRules';
+
+const BULLET_MARGIN = 20;
+const BULLET_BOUNDS: IBounds = {
+    minX: -BULLET_MARGIN,
+    maxX: GAME_WIDTH + BULLET_MARGIN,
+    minY: -BULLET_MARGIN,
+    maxY: GAME_HEIGHT + BULLET_MARGIN,
+};
 
 export interface WaveAchievementEvaluationParams {
     completedWave: number;
@@ -74,14 +84,14 @@ export class WaveSystem {
     }
 
     public updateBullets(bullets: Bullet[]): void {
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            const b = bullets[i];
-            b.x += b.vx || 0;
-            b.y += b.vy;
-            if (b.y < -20 || b.y > GAME_HEIGHT + 20 || b.x < -20 || b.x > GAME_WIDTH + 20) {
-                bullets.splice(i, 1);
-            }
-        }
+        updateAndPrune(
+            bullets,
+            (b) => {
+                b.x += b.vx || 0;
+                b.y += b.vy;
+            },
+            (b) => !isInsideBounds(b, BULLET_BOUNDS)
+        );
     }
 
     public updateEnemiesAndFire(
@@ -140,24 +150,24 @@ export class WaveSystem {
             });
         }
 
-        for (let i = bombs.length - 1; i >= 0; i--) {
-            const bomb = bombs[i];
-            bomb.y += bomb.speed;
-            if (bomb.y > GAME_HEIGHT + 40) {
-                bombs.splice(i, 1);
-            }
-        }
+        updateAndPrune(
+            bombs,
+            (bomb) => {
+                bomb.y += bomb.speed;
+            },
+            (bomb) => bomb.y > GAME_HEIGHT + 40
+        );
     }
 
     public updatePowerUps(powerUps: PowerUp[]): void {
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            const p = powerUps[i];
-            p.bobAngle += 0.05;
-            p.x += Math.sin(p.bobAngle) * 0.6;
-            p.y += p.speed;
-            if (p.y > GAME_HEIGHT + 30) {
-                powerUps.splice(i, 1);
-            }
-        }
+        updateAndPrune(
+            powerUps,
+            (p) => {
+                p.bobAngle += 0.05;
+                p.x += Math.sin(p.bobAngle) * 0.6;
+                p.y += p.speed;
+            },
+            (p) => p.y > GAME_HEIGHT + 30
+        );
     }
 }

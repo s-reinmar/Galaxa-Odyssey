@@ -1,5 +1,6 @@
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { Particle, Star } from '../entities/GameEntities';
+import { updateAndPrune } from '../entities/collections';
 
 export class ParticleSystem {
     public stars: Star[] = [];
@@ -33,15 +34,15 @@ export class ParticleSystem {
 
     public updateParticles(particlesEnabled: boolean): void {
         if (!particlesEnabled) return;
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= 1;
-            if (p.life <= 0) {
-                this.particles.splice(i, 1);
-            }
-        }
+        updateAndPrune(
+            this.particles,
+            (p) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 1;
+            },
+            (p) => p.life <= 0
+        );
     }
 
     public addExplosion(
