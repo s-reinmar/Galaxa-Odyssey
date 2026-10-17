@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocale } from '../config/content/locales/LocaleProvider';
 import { GameEngine } from '../game/GameEngine';
 import { AchievementsHeader } from './achievements/AchievementsHeader';
 import { AchievementsProgressBar } from './achievements/AchievementsProgressBar';
@@ -14,12 +15,14 @@ interface AchievementsOverlayProps {
 }
 
 export const AchievementsOverlay: React.FC<AchievementsOverlayProps> = ({ engine, onClose }) => {
+  const { t } = useLocale();
   const view = useAchievementsView(engine);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
+      aria-label={t('Odznaki i wyróżnienia pilota', 'Pilot badges and commendations')}
       className="absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >

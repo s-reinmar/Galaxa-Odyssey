@@ -4,6 +4,7 @@ import type { PlayerState } from '../entities/GameEntities';
 import { GameAudioService } from '../audio/GameAudioService';
 import type { IGameAudio } from '../audio/IGameAudio';
 import type { ICollisionContext } from './CollisionSystem';
+import { HIT_NOTICE } from '../combatText';
 
 export class PlayerDamageService {
     constructor(private readonly audio: IGameAudio = new GameAudioService()) {}
@@ -24,21 +25,21 @@ export class PlayerDamageService {
 
         if (ctx.infiniteLives) {
             player.shield = MAX_SHIELD;
-            player.hitNotice = 'SHIELD DEFLECTED';
+            player.hitNotice = HIT_NOTICE.SHIELD_DEFLECTED;
             player.hitNoticeTimer = 40;
             return;
         }
 
         if (player.shield > 0) {
             player.shield = Math.max(0, player.shield - damage);
-            player.hitNotice = `-${damage} SHIELD`;
+            player.hitNotice = HIT_NOTICE.shieldDamage(damage);
             player.hitNoticeTimer = 45;
             return;
         }
 
         player.lives -= 1;
         player.shield = MAX_SHIELD;
-        player.hitNotice = 'CRITICAL HULL HIT!';
+        player.hitNotice = HIT_NOTICE.CRITICAL_HULL_HIT;
         player.hitNoticeTimer = 60;
         ctx.addExplosion(player.x + 20, player.y + 20, 80, 210, 255, 32);
         this.audio.playSound(SoundType.EXPLOSION);

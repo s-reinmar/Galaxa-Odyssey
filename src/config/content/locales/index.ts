@@ -8,14 +8,14 @@ export const LOCALES: Record<SupportedLocale, TranslationSchema> = {
     'en-US': enUS,
 };
 
+export const LOCALE_STORAGE_KEY = 'galaxa_odyssey_locale';
+
 /**
  * Domyślna lokalizacja bazowa
  */
 export const DEFAULT_LOCALE: SupportedLocale = 'pl-PL';
 
-/**
- * Bezpośredni dostęp do aktywnego słownika
- */
-export const t = LOCALES[DEFAULT_LOCALE];
+export const isSupportedLocale = (value: string | null): value is SupportedLocale =>
+    value !== null && Object.prototype.hasOwnProperty.call(LOCALES, value);
 
 export type { TranslationSchema };

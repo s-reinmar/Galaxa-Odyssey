@@ -9,6 +9,7 @@ import type { ShipSkinId } from '../config/visuals/hangarVisuals';
 import type { WeaponMode } from '../types/game';
 import { calculateCombatHudMetrics } from '../game/services/combatHudMetrics';
 import { selectCombatViewModel } from '../game/services/combatViewModel';
+import { useLocale } from '../config/content/locales/LocaleProvider';
 
 interface Modern3DGameCanvasControllerOptions {
     engine: GameEngine;
@@ -34,7 +35,8 @@ export function useModern3DGameCanvasController({
     onReturnToHangar,
     onToggleFullscreen,
 }: Modern3DGameCanvasControllerOptions) {
-    const { containerRef, sceneRef } = useCombatScene(selectedSkin);
+    const { locale } = useLocale();
+    const { containerRef, sceneRef } = useCombatScene(selectedSkin, locale);
     const [viewMode, setViewMode] = useState<CameraViewMode>('CHASE_3D');
     const [isWarpActive, setIsWarpActive] = useState(false);
     const [showRadar, setShowRadar] = useState(true);

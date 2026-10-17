@@ -9,10 +9,15 @@ import { CombatEntityFactory } from './CombatEntityFactory';
 import { CombatTargetProjector } from './CombatTargetProjector';
 import { CAMERA_VIEW_STRATEGIES, COMBAT_SKIN_PALETTES } from './combatSceneTypes';
 import type { CameraViewMode, CombatSceneSource, ProjectedTarget } from './combatSceneTypes';
+import type { SupportedLocale } from '../../config/content/locales';
+import { DEFAULT_LOCALE } from '../../config/content/locales';
+import { WEAPON_LABELS } from '../../config/gameplay/balance';
+import { localizeHitNotice, type CombatTextTranslator } from '../../game/combatText';
 
 export type { CameraViewMode, ProjectedTarget } from './combatSceneTypes';
 
 export class SpaceCombat3DScene {
+  private locale: SupportedLocale = DEFAULT_LOCALE;
   private container: HTMLElement;
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
@@ -337,6 +342,9 @@ export class SpaceCombat3DScene {
   ) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    const t: CombatTextTranslator = (polish, english) =>
+      this.locale === 'pl-PL' ? polish : english;
+    const weaponLabel = WEAPON_LABELS[player.weaponMode];
 
     ctx.clearRect(0, 0, 512, 128);
 
@@ -382,7 +390,11 @@ export class SpaceCombat3DScene {
     ctx.font = 'bold 13px monospace';
     ctx.fillStyle = isHit ? '#ffffff' : accentColor;
     ctx.textAlign = 'left';
-    ctx.fillText(isPlayer2 ? 'P2 DEFLECTOR SHIELD' : 'P1 DEFLECTOR SHIELD', 20, 26);
+    ctx.fillText(
+      isPlayer2 ? t('TARCZA DEFLEKTOROWA P2', 'P2 DEFLECTOR SHIELD') : t('TARCZA DEFLEKTOROWA P1', 'P1 DEFLECTOR SHIELD'),
+      20,
+      26
+    );
 
     ctx.textAlign = 'right';
     ctx.font = 'bold 14px monospace';
@@ -436,7 +448,7 @@ export class SpaceCombat3DScene {
     ctx.font = 'bold 12px monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('HULL RESERVES:', 20, 68);
+    ctx.fillText(t('REZERWY KADŁUBA:', 'HULL RESERVES:'), 20, 68);
 
     const maxLives = Math.max(3, player.maxLives ?? 3);
     const pipW = 28;
@@ -476,15 +488,18 @@ export class SpaceCombat3DScene {
       ctx.fillStyle = player.hitNotice.includes('CRITICAL') || player.hitNotice.includes('HULL') ? '#ef4444' : '#fbbf24';
       ctx.shadowColor = '#000000';
       ctx.shadowBlur = 4;
-      ctx.fillText(`⚡ ${player.hitNotice} ⚡`, 256, 100);
+      ctx.fillText(`⚡ ${localizeHitNotice(player.hitNotice, t)} ⚡`, 256, 100);
       ctx.shadowBlur = 0;
     } else {
       ctx.font = '11px monospace';
       ctx.fillStyle = shield === 0 ? '#ef4444' : 'rgba(148, 163, 184, 0.8)';
       ctx.fillText(
         shield === 0
-          ? '⚠️ SHIELD COLLAPSED - DIRECT HULL VULNERABILITY'
-          : `WEAPON MODE: ${player.weaponMode} • ENERGY: ${Math.round(player.weaponEnergy)}%`,
+          ? t('⚠️ TARCZA OPADŁA — KADŁUB BEZ OCHRONY', '⚠️ SHIELD COLLAPSED - DIRECT HULL VULNERABILITY')
+          : t(
+              `TRYB BRONI: ${weaponLabel.name.pl} • ENERGIA: ${Math.round(player.weaponEnergy)}%`,
+              `WEAPON MODE: ${player.weaponMode} • ENERGY: ${Math.round(player.weaponEnergy)}%`
+            ),
         256,
         100
       );
@@ -638,6 +653,10 @@ export class SpaceCombat3DScene {
   // Camera View Toggle
   public setViewMode(mode: CameraViewMode) {
     this.viewMode = mode;
+  }
+
+  public setLocale(locale: SupportedLocale) {
+    this.locale = locale;
   }
 
   // Trigger Hyperspace jump between waves or at launch

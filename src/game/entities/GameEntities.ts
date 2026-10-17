@@ -8,6 +8,7 @@ import {
     MAX_SHIELD,
     MAX_WEAPON_ENERGY,
 } from '../constants';
+import type { WeaponAnnouncementId } from '../combatText';
 
 export interface Star {
     x: number;
@@ -92,6 +93,8 @@ export interface PlayerState {
 }
 
 export interface WeaponAnnouncement {
+    id?: WeaponAnnouncementId;
+    level?: number;
     title: string;
     subtitle: string;
     color: string;

@@ -1,7 +1,17 @@
 import React from 'react';
 import { Rocket } from 'lucide-react';
 import { soundEngine } from '../../game/audio/soundEngine';
+import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { CINEMATIC_CAMERA_PRESETS } from './menuTypes';
+
+const CAMERA_LABELS: Record<string, [string, string]> = {
+  default: ['Statek 3/4', '3/4 Hero'],
+  hangar: ['Hangar', 'Hangar Bay'],
+  cockpit: ['Kokpit', 'Cockpit'],
+  weapons: ['Działa', 'Weapons'],
+  engines: ['Silniki', 'Engines'],
+  orbital: ['Orbita', 'Orbit'],
+};
 
 interface CinematicNavBarProps {
   activeCameraPreset: string;
@@ -15,51 +25,55 @@ export const CinematicNavBar: React.FC<CinematicNavBarProps> = ({
   onCameraChange,
   onExit,
   onStartMission,
-}) => (
-  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-4 py-2.5 animate-in fade-in slide-in-from-bottom-4 duration-300">
-    <div className="text-xs font-mono text-cyan-300 font-bold flex items-center gap-2 mr-2">
-      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-      <span>TRYB KINOWY HANGARU</span>
-      <span className="text-slate-400 text-[10px] hidden sm:inline">(Przeciągnij myszą 360°, Scroll = Zoom)</span>
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-4 py-2.5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="text-xs font-mono text-cyan-300 font-bold flex items-center gap-2 mr-2">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <span>{t('TRYB KINOWY HANGARU', 'HANGAR CINEMATIC MODE')}</span>
+        <span className="text-slate-400 text-[10px] hidden sm:inline">({t('Przeciągnij myszą 360°, Scroll = Zoom', 'Drag mouse 360°, Scroll = Zoom')})</span>
+      </div>
+
+      <div className="flex items-center gap-1">
+        {CINEMATIC_CAMERA_PRESETS.map((cam) => (
+          <button
+            key={cam.id}
+            type="button"
+            onClick={() => onCameraChange(cam.id)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-mono transition ${
+              activeCameraPreset === cam.id
+                ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/60 font-bold'
+                : 'text-slate-400 hover:text-white bg-slate-900/60 border border-slate-800'
+            }`}
+          >
+            {CAMERA_LABELS[cam.id] ? t(...CAMERA_LABELS[cam.id]) : cam.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+
+      <button
+        type="button"
+        onClick={() => {
+          soundEngine.playUiClick();
+          onExit();
+        }}
+        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
+      >
+        <span>{t('POWRÓT DO MENU [C]', 'BACK TO MENU [C]')}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={onStartMission}
+        className="px-4 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-lg text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <Rocket size={13} />
+        <span>{t('START MISJI', 'START MISSION')}</span>
+      </button>
     </div>
-
-    <div className="flex items-center gap-1">
-      {CINEMATIC_CAMERA_PRESETS.map((cam) => (
-        <button
-          key={cam.id}
-          type="button"
-          onClick={() => onCameraChange(cam.id)}
-          className={`px-2.5 py-1 rounded-lg text-xs font-mono transition ${
-            activeCameraPreset === cam.id
-              ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/60 font-bold'
-              : 'text-slate-400 hover:text-white bg-slate-900/60 border border-slate-800'
-          }`}
-        >
-          {cam.label}
-        </button>
-      ))}
-    </div>
-
-    <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
-
-    <button
-      type="button"
-      onClick={() => {
-        soundEngine.playUiClick();
-        onExit();
-      }}
-      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-700"
-    >
-      <span>POWRÓT DO MENU [C]</span>
-    </button>
-
-    <button
-      type="button"
-      onClick={onStartMission}
-      className="px-4 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-lg text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
-    >
-      <Rocket size={13} />
-      <span>START MISJI</span>
-    </button>
-  </div>
-);
+  );
+};

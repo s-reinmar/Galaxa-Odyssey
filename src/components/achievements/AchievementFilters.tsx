@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocale } from '../../config/content/locales/LocaleProvider';
 import { CATEGORY_FILTERS, CategoryFilter, StatusFilter } from './achievementSelectors';
 
 interface AchievementFiltersProps {
@@ -18,16 +19,24 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
   onStatusChange,
   onCategoryChange,
 }) => {
+  const { t } = useLocale();
+  const categoryLabels: Record<CategoryFilter, string> = {
+    all: t('wszystkie', 'all'),
+    combat: t('walka', 'combat'),
+    survival: t('przetrwanie', 'survival'),
+    progression: t('postęp', 'progression'),
+    mastery: t('mistrzostwo', 'mastery'),
+  };
   const statusButtons: { value: StatusFilter; label: string; active: string }[] = [
-    { value: 'all', label: `All (${totalCount})`, active: 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/40' },
+    { value: 'all', label: `${t('Wszystkie', 'All')} (${totalCount})`, active: 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/40' },
     {
       value: 'unlocked',
-      label: `Unlocked (${unlockedCount})`,
+      label: `${t('Odblokowane', 'Unlocked')} (${unlockedCount})`,
       active: 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40',
     },
     {
       value: 'in_progress',
-      label: `Locked (${totalCount - unlockedCount})`,
+      label: `${t('Zablokowane', 'Locked')} (${totalCount - unlockedCount})`,
       active: 'bg-amber-500/25 text-amber-300 border border-amber-500/40',
     },
   ];
@@ -59,7 +68,7 @@ export const AchievementFilters: React.FC<AchievementFiltersProps> = ({
               selectedCategory === cat ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            {cat}
+            {categoryLabels[cat]}
           </button>
         ))}
       </div>

@@ -2,7 +2,9 @@ import React from 'react';
 import { CheckCircle2, Lock } from 'lucide-react';
 import type { Achievement } from '../../types/achievements';
 import { AchievementIcon } from './AchievementIcon';
-import { getRarityBadgeStyle } from './rarityStyles';
+import { getRarityBadgeStyle, getRarityLabel } from './rarityStyles';
+import { localizeAchievement } from '../../config/gameplay/achievements';
+import { useLocale } from '../../config/content/locales/LocaleProvider';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -13,17 +15,19 @@ interface AchievementCardProps {
 }
 
 export const AchievementCard: React.FC<AchievementCardProps> = ({
-  achievement: ach,
+  achievement: achievement,
   unlocked,
   progress,
   selected,
   onSelect,
 }) => {
+  const { t } = useLocale();
+  const ach = localizeAchievement(achievement, t);
   const style = getRarityBadgeStyle(ach.rarity, unlocked);
 
   return (
     <div
-      onClick={() => onSelect(ach)}
+      onClick={() => onSelect(achievement)}
       className={`relative p-3 rounded-xl border transition cursor-pointer select-none ${style.border} ${style.bg} ${style.glow} ${
         selected ? 'ring-2 ring-cyan-400' : 'hover:scale-[1.01]'
       }`}
@@ -49,7 +53,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
                 unlocked ? `${style.text} border-current/30 bg-black/40` : 'text-slate-600 border-slate-800'
               }`}
             >
-              {ach.rarity}
+              {getRarityLabel(ach.rarity, t)}
             </span>
           </div>
 
@@ -61,7 +65,7 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
             {unlocked ? (
               <div className="flex items-center gap-1 text-emerald-400">
                 <CheckCircle2 size={12} />
-                <span>COMMISSIONED</span>
+                <span>{t('ODEBRANE', 'COMMISSIONED')}</span>
               </div>
             ) : ach.maxProgress > 1 ? (
               <div className="flex items-center gap-2 flex-1 mr-3">
@@ -76,10 +80,10 @@ export const AchievementCard: React.FC<AchievementCardProps> = ({
                 </span>
               </div>
             ) : (
-              <span className="text-slate-500">Locked</span>
+              <span className="text-slate-500">{t('Zablokowane', 'Locked')}</span>
             )}
 
-            <span className="text-amber-300 font-bold shrink-0">+{ach.rewardCredits} cr</span>
+            <span className="text-amber-300 font-bold shrink-0">+{ach.rewardCredits} {t('kr', 'cr')}</span>
           </div>
         </div>
       </div>

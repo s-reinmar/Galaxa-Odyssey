@@ -1,6 +1,8 @@
 import React from 'react';
 import { Shield, Zap, Crosshair, AlertTriangle } from 'lucide-react';
-import { WeaponMode, WEAPON_MODE_CONFIGS } from '../../../types/game';
+import { WeaponMode } from '../../../types/game';
+import { useLocale } from '../../../config/content/locales/LocaleProvider';
+import { WEAPON_LABELS } from '../../../config/gameplay/balance';
 
 interface CockpitHUDOverlayProps {
   shield: number;
@@ -25,14 +27,13 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
   isTakingDamage,
   onToggleView,
 }) => {
+  const { t } = useLocale();
   const shieldPercent = Math.max(0, Math.min(100, Math.round((shield / maxShield) * 100)));
   const energyPercent = Math.max(0, Math.min(100, Math.round((energy / maxEnergy) * 100)));
   const isCritical = shieldPercent <= 25 && lives <= 1;
 
   // Roll rotation in degrees for artificial horizon
   const rollDeg = Math.round(bankAngle * -45);
-
-  const weaponCfg = WEAPON_MODE_CONFIGS[weaponMode];
 
   return (
     <div className="absolute inset-0 z-20 pointer-events-none select-none flex flex-col justify-between overflow-hidden">
@@ -112,13 +113,13 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
       <div className="relative pt-3 sm:pt-4 px-6 sm:px-12 flex items-center justify-between text-xs font-mono text-cyan-300">
         <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1 rounded border border-cyan-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          <span className="text-[11px] font-bold">WIDOK Z KOKPITU [FPP]</span>
+          <span className="text-[11px] font-bold">{t('WIDOK Z KOKPITU [FPP]', 'COCKPIT VIEW [FPP]')}</span>
         </div>
 
         {isCritical && (
           <div className="flex items-center gap-1.5 px-3 py-1 bg-red-950/90 border border-red-500/80 text-red-300 rounded font-bold animate-pulse">
             <AlertTriangle size={14} className="text-red-400" />
-            <span>KRYTYCZNE USZKODZENIA KADŁUBA</span>
+            <span>{t('KRYTYCZNE USZKODZENIA KADŁUBA', 'CRITICAL HULL DAMAGE')}</span>
           </div>
         )}
 
@@ -127,7 +128,7 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
           onClick={onToggleView}
           className="pointer-events-auto px-3 py-1 bg-slate-900/90 border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-white rounded text-[11px] transition"
         >
-          Przełącz na TPP [V]
+          {t('Przełącz na TPP [V]', 'Switch to TPP [V]')}
         </button>
       </div>
 
@@ -137,7 +138,7 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
         <div className="w-48 sm:w-56 bg-slate-950/85 backdrop-blur border border-cyan-500/40 rounded-lg p-2.5 shadow-xl font-mono">
           <div className="flex items-center justify-between text-[11px] mb-1">
             <span className="text-cyan-400 font-bold flex items-center gap-1">
-              <Shield size={13} /> TARCZA OBRONNA
+              <Shield size={13} /> {t('TARCZA OBRONNA', 'DEFLECTOR SHIELD')}
             </span>
             <span className="text-white font-bold tabular-nums">{shieldPercent}%</span>
           </div>
@@ -155,15 +156,15 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-            <span>KADŁUB (ŻYCIA):</span>
+            <span>{t('KADŁUB (ŻYCIA):', 'HULL (LIVES):')}</span>
             <span className="text-amber-400 font-bold tabular-nums">{'▲ '.repeat(lives)}</span>
           </div>
         </div>
 
         {/* Center Compass / Speed Gauge */}
         <div className="hidden sm:flex flex-col items-center bg-slate-950/80 px-4 py-1.5 rounded-lg border border-slate-800 font-mono text-center">
-          <span className="text-[10px] text-slate-400">PRĘDKOŚĆ MARSZOWA</span>
-          <span className="text-sm font-bold text-cyan-400 tabular-nums">1 240 KM/H</span>
+          <span className="text-[10px] text-slate-400">{t('PRĘDKOŚĆ MARSZOWA', 'CRUISE SPEED')}</span>
+          <span className="text-sm font-bold text-cyan-400 tabular-nums">{t('1 240 KM/H', '1,240 KM/H')}</span>
         </div>
 
         {/* Right Console: Weapon Capacitor & Mode */}
@@ -171,7 +172,7 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
           <div className="flex items-center justify-between text-[11px] mb-1">
             <span className="text-white font-bold tabular-nums">{energyPercent}%</span>
             <span className="text-amber-400 font-bold flex items-center gap-1">
-              ENERGIA BRONI <Zap size={13} />
+              {t('ENERGIA BRONI', 'WEAPON ENERGY')} <Zap size={13} />
             </span>
           </div>
           <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-amber-500/30 mb-2">
@@ -182,8 +183,10 @@ export const CockpitHUDOverlay: React.FC<CockpitHUDOverlayProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-            <span className="text-cyan-300 font-semibold">{weaponCfg?.name || 'VULCAN'}</span>
-            <span>SYSTEM OGNIOWY [1-4]</span>
+            <span className="text-cyan-300 font-semibold">
+              {t(WEAPON_LABELS[weaponMode].name.pl, WEAPON_LABELS[weaponMode].name.en)}
+            </span>
+            <span>{t('SYSTEM OGNIOWY [1-4]', 'FIRE SYSTEM [1-4]')}</span>
           </div>
         </div>
       </div>

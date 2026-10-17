@@ -75,6 +75,16 @@ export const SHIP_SKINS: Record<ShipSkinId, ShipSkinConfig> = {
 };
 
 /**
+ * Lokalizowane nazwy skórek (klucz = ShipSkinId)
+ */
+export const SHIP_SKIN_LABELS: Record<ShipSkinId, { pl: string; en: string }> = {
+    stealth: { pl: 'PUSTKOWY CIEŃ', en: 'VOID STEALTH' },
+    titanium: { pl: 'SŁONECZNY TYTAN', en: 'SOLAR TITANIUM' },
+    cyberpunk: { pl: 'CYBERIMPULS', en: 'CYBER PULSE' },
+    hyperion: { pl: 'ARKTYCZNY HYPERION', en: 'HYPERION ARCTIC' },
+};
+
+/**
  * Presety pozycji i celów kamer dla widoków inspekcyjnych w hangarze
  */
 export const CAMERA_PRESETS: Record<string, CameraTargetPreset> = {

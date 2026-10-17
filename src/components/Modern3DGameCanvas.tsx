@@ -114,11 +114,7 @@ export const Modern3DGameCanvas: React.FC<Modern3DGameCanvasProps> = ({
                 {isWarpActive && <WarpBanner wave={view.wave} />}
 
                 {view.weaponAnnouncement && !isWarpActive && (
-                    <WeaponAnnouncementBanner
-                        title={view.weaponAnnouncement.title}
-                        subtitle={view.weaponAnnouncement.subtitle}
-                        color={view.weaponAnnouncement.color}
-                    />
+                    <WeaponAnnouncementBanner announcement={view.weaponAnnouncement} />
                 )}
 
                 <div className="w-full flex items-end justify-between gap-4 pointer-events-auto">

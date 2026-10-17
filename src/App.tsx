@@ -11,8 +11,10 @@ import type { ShipSkinId } from './config/visuals/hangarVisuals';
 import { AppHeader } from './components/AppHeader';
 import { AppFooter } from './components/AppFooter';
 import { useFullscreenManager } from './hooks/useFullscreenManager';
+import { useLocale } from './config/content/locales/LocaleProvider';
 
 export const App: React.FC = () => {
+  const { t } = useLocale();
   const [, setTick] = useState(0);
   const forceUpdate = () => setTick((t) => t + 1);
 
@@ -56,7 +58,14 @@ export const App: React.FC = () => {
           }}
           onToggleFullscreen={toggleFullscreen}
           onResetProfile={() => {
-            if (window.confirm('Zresetować dane zapisu gry, osiągnięcia i profil?')) {
+            if (
+              window.confirm(
+                t(
+                  'Zresetować dane zapisu gry, osiągnięcia i profil?',
+                  'Reset saved game data, achievements, and profile?'
+                )
+              )
+            ) {
               engine.clearSavedGame();
               localStorage.removeItem('galaxa_odyssey_achievements');
               localStorage.removeItem('galaxa_odyssey_profile');

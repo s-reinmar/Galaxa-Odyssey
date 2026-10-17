@@ -354,3 +354,54 @@ export const ACHIEVEMENTS: Achievement[] = [
         iconName: 'medal',
     },
 ];
+type AchievementTextField = 'title' | 'subtitle' | 'description';
+type Translate = (polish: string, english: string) => string;
+
+/** Polskie teksty osiągnięć; pola title/subtitle/description w ACHIEVEMENTS pozostają domyślnie angielskie. */
+export const ACHIEVEMENT_TEXTS_PL: Record<string, Record<AchievementTextField, string>> = {
+    cadet_takeoff: { title: 'Zgoda na walkę', subtitle: 'Pierwszy lot bojowy', description: 'Rozpocznij swoją pierwszą aktywną misję bojową z monumentalnego hangaru.' },
+    first_wave: { title: 'Pierwsza fala pokonana', subtitle: 'Straż przednia odparta', description: 'Przetrwaj pierwszą falę obcych i przejdź do fali 2.' },
+    wave_three: { title: 'Taktyczny rozpęd', subtitle: 'Sektor 3 oczyszczony', description: 'Przebij się przez pierwsze 3 fale coraz groźniejszych formacji obcego roju.' },
+    interstellar_ace: { title: 'Międzygwiezdny as', subtitle: 'Weteran głębokiego kosmosu', description: 'Przetrwaj natarcie obcych i dotrzyj do fali 5 w walce na orbicie.' },
+    cosmic_navigator: { title: 'Kosmiczny nawigator', subtitle: 'Dotarcie do sektora 10', description: 'Dotrzyj do fali 10 mimo nieustępliwych nurkujących bombowców z napędem nadprzestrzennym.' },
+    power_surge: { title: 'Przypływ mocy', subtitle: 'Padlinożerca pola walki', description: 'Zbierz 4 taktyczne ulepszenia (żetony tarczy, dodatkowego życia lub broni).' },
+    token_collector: { title: 'Łupieżca zapasów', subtitle: 'Władca linii zaopatrzenia', description: 'Zbierz 15 taktycznych ulepszeń lub żetonów broni wypadających w walce.' },
+    skin_collector: { title: 'Stylista hangaru', subtitle: 'Konfigurator statków', description: 'Załóż dowolne malowanie lub obejrzyj skórki statków w hangarze 3D.' },
+    ascendant_fleet: { title: 'Flota wzlotu', subtitle: 'Nieskończona wytrzymałość', description: 'Zdobądź Podwójne życia lub Nieskończone życia w hangarze ulepszeń statku.' },
+    triple_threat: { title: 'Potrójne zagrożenie', subtitle: 'Odblokowana salwa 3-kierunkowa', description: 'Zbierz żeton Potrójnego strzału i użyj szerokokątnych wachlarzowych dział.' },
+    laser_master: { title: 'Przeciążenie lasera', subtitle: 'Spójna wiązka tnąca', description: 'Zbierz żeton Wiązki laserowej i spalaj wrogów ciągłym ogniem.' },
+    plasma_conduit: { title: 'Anihilator plazmy', subtitle: 'Ciężkie pociski zakłócające', description: 'Zbierz żeton Rozrzutu plazmy i wyzwól 5-kierunkowe, niszczycielskie salwy energii.' },
+    full_arsenal: { title: 'Maksymalna siła ognia', subtitle: 'Potrójna plazma rozproszona', description: 'Użyj działa poziomu 3 z trzema zsynchronizowanymi działami plazmowymi.' },
+    elite_hunter: { title: 'Łowca elity', subtitle: 'Cele o wysokiej wartości', description: 'Przechwyć i zneutralizuj 5 elitarnych myśliwców obcych.' },
+    ace_interceptor: { title: 'As przechwytywania', subtitle: 'Szczytowy drapieżnik', description: 'Przechwyć i zestrzel 15 elitarnych myśliwców obcych.' },
+    boss_slayer: { title: 'Pogromca bossów', subtitle: 'Koszmar dowódcy floty', description: 'Zneutralizuj 30 elitarnych nurkujących bombowców lub przetrwaj poza falę 8.' },
+    sharpshooter: { title: 'Śmiertelna precyzja', subtitle: 'Przechwytywacz nurkujących', description: 'Zniszcz 5 nurkujących wrogów w trakcie ataku, zanim wyjdą z nurkowania.' },
+    alien_exterminator: { title: 'Pogromca setek', subtitle: '100 wrogów powalonych', description: 'Wyeliminuj 100 obcych najeźdźców podczas swoich lotów bojowych.' },
+    bomb_defuser: { title: 'Saper bomb', subtitle: 'Obrona planety', description: 'Zestrzel i zdetonuj w powietrzu 5 spadających czerwonych bomb, zanim uderzą.' },
+    bomb_demolisher: { title: 'Zamiatacz bomb', subtitle: 'Specjalista od zagrożeń', description: 'Przechwyć i zniszcz 20 spadających orbitalnych bomb obcych.' },
+    indomitable: { title: 'Bezbłędny pilot', subtitle: 'Nienaruszona obrona', description: 'Oczyść całą falę wrogów, nie otrzymując żadnych uszkodzeń kadłuba.' },
+    shield_sentinel: { title: 'Pancerna egida', subtitle: 'Mistrzostwo deflektorów', description: 'Przywróć osłony deflektorowe żetonem Wzmocnienia tarczy przy krytycznym stanie zdrowia (< 25%).' },
+    near_death_escape: { title: 'Zastrzyk adrenaliny', subtitle: 'Heroizm ostatniego życia', description: 'Ukończ falę, mając tylko 1 pozostałą jednostkę życia.' },
+    high_roller: { title: 'Potentat punktów', subtitle: 'Pogromca tablicy wyników', description: 'Zdobądź w jednym podejściu 3000 punktów misji lub więcej.' },
+    galactic_legend: { title: 'Legenda galaktyki', subtitle: 'Władca 10 000 punktów', description: 'Przekrocz 10 000 punktów misji w orbitalnych walkach powietrznych.' },
+    speed_demon: { title: 'Nadprzestrzenny błyskawiczny atak', subtitle: 'Szybkie oczyszczenie', description: 'Zniszcz całą falę wrogów w mniej niż 20 sekund.' },
+    void_conqueror: { title: 'Zdobywca pustki', subtitle: 'Zahartowany w zagrożeniu', description: 'Oczyść falę na poziomie TRUDNYM mimo agresywnego ognia wroga.' },
+    nightmare_veteran: { title: 'Zwycięzca koszmaru', subtitle: 'Pogromca największych zagrożeń', description: 'Przetrwaj do fali 3 lub wyższej na poziomie TRUDNYM.' },
+    coop_commander: { title: 'Podwójne dowodzenie', subtitle: 'Protokół skrzydłowego', description: 'Rozpocznij misję kooperacyjną dla 2 graczy ze sprzymierzonym statkiem.' },
+    wingman_savior: { title: 'Bracia broni', subtitle: 'Dominacja we współpracy', description: 'Zdobądź 2000 punktów lub więcej podczas lotu kooperacyjnego dla 2 graczy.' },
+    credit_tycoon: { title: 'Galaktyczna kasa wojenna', subtitle: 'Zamożny kontrahent', description: 'Zgromadź na koncie 1000 kredytów.' },
+};
+
+export const getAchievementText = (
+    id: string,
+    field: AchievementTextField,
+    fallback: string,
+    t: Translate,
+): string => t(ACHIEVEMENT_TEXTS_PL[id]?.[field] ?? fallback, fallback);
+
+export const localizeAchievement = (achievement: Achievement, t: Translate): Achievement => ({
+    ...achievement,
+    title: getAchievementText(achievement.id, 'title', achievement.title, t),
+    subtitle: getAchievementText(achievement.id, 'subtitle', achievement.subtitle, t),
+    description: getAchievementText(achievement.id, 'description', achievement.description, t),
+});

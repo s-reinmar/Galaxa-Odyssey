@@ -1,6 +1,8 @@
 import React from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { AchievementIcon } from './achievements/AchievementIcon';
+import { getAchievementText } from '../config/gameplay/achievements';
+import { useLocale } from '../config/content/locales/LocaleProvider';
 
 interface ToastData {
   id: string;
@@ -16,6 +18,7 @@ interface AchievementToastProps {
 }
 
 export const AchievementToast: React.FC<AchievementToastProps> = ({ toast, onDismiss }) => {
+  const { t } = useLocale();
   if (!toast) return null;
 
   return (
@@ -30,22 +33,23 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({ toast, onDis
         <div className="pr-2">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono uppercase font-black tracking-widest text-amber-400 flex items-center gap-1">
-              <Sparkles size={11} /> BADGE UNLOCKED
+              <Sparkles size={11} /> {t('ODZNAKA ODBLOKOWANA', 'BADGE UNLOCKED')}
             </span>
             <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
-              +{toast.rewardCredits} CR
+              +{toast.rewardCredits} {t('KR', 'CR')}
             </span>
           </div>
           <h4 className="text-sm font-black text-white font-mono tracking-wide leading-tight">
-            {toast.title}
+            {getAchievementText(toast.id, 'title', toast.title, t)}
           </h4>
-          <p className="text-[11px] text-slate-300 font-sans">{toast.subtitle}</p>
+          <p className="text-[11px] text-slate-300 font-sans">{getAchievementText(toast.id, 'subtitle', toast.subtitle, t)}</p>
         </div>
 
         {/* Dismiss Button */}
         <button
           type="button"
           onClick={onDismiss}
+          aria-label={t('Zamknij powiadomienie', 'Dismiss notification')}
           className="text-slate-400 hover:text-white p-1 rounded-md transition"
         >
           <X size={14} />

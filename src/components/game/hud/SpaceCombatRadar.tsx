@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import type { ProjectedTarget } from '../../../rendering/three/combatSceneTypes';
 import { EnemyType } from '../../../types/game';
 import { Radar, AlertTriangle, Crosshair, ShieldAlert } from 'lucide-react';
+import { useLocale } from '../../../config/content/locales/LocaleProvider';
 
 interface SpaceCombatRadarProps {
   targets: ProjectedTarget[];
@@ -14,6 +15,7 @@ export const SpaceCombatRadar: React.FC<SpaceCombatRadarProps> = ({
   primaryTarget = null,
   wave = 1,
 }) => {
+  const { t } = useLocale();
   const radarSize = 160;
   const radius = radarSize / 2;
   const padding = 12;
@@ -33,12 +35,12 @@ export const SpaceCombatRadar: React.FC<SpaceCombatRadarProps> = ({
       <div className="flex items-center justify-between border-b border-cyan-500/30 pb-1 text-[10px]">
         <div className="flex items-center gap-1.5 font-bold tracking-wider text-cyan-400">
           <Radar size={13} className="text-cyan-400 animate-spin" style={{ animationDuration: '4s' }} />
-          <span>3D TACTICAL SCANNER</span>
+          <span>{t('SKANER TAKTYCZNY 3D', '3D TACTICAL SCANNER')}</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-slate-400">WAVE {wave}:</span>
+          <span className="text-slate-400">{t(`FALA ${wave}:`, `WAVE ${wave}:`)}</span>
           <span className={`font-bold ${targets.length > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-            {targets.length} H
+            {t(`${targets.length} W`, `${targets.length} H`)}
           </span>
         </div>
       </div>
@@ -133,13 +135,13 @@ export const SpaceCombatRadar: React.FC<SpaceCombatRadarProps> = ({
 
           {/* Bearing Tick Labels */}
           <text x={radius} y={padding - 2} textAnchor="middle" fill="#38bdf8" fontSize="8" fontWeight="bold">
-            000° FORE
+            {t('000° PRZÓD', '000° FORE')}
           </text>
           <text x={radarSize - 2} y={radius + 3} textAnchor="end" fill="#64748b" fontSize="7">
-            STBD
+            {t('PRAW.', 'STBD')}
           </text>
           <text x={2} y={radius + 3} textAnchor="start" fill="#64748b" fontSize="7">
-            PORT
+            {t('LEW.', 'PORT')}
           </text>
 
           {/* Rotating Radar Sweep Line */}
@@ -275,16 +277,16 @@ export const SpaceCombatRadar: React.FC<SpaceCombatRadarProps> = ({
       {/* Radar Telemetry Footer */}
       <div className="flex items-center justify-between text-[9px] pt-1 border-t border-cyan-500/20 text-slate-400">
         <div className="flex items-center gap-1">
-          <span className="text-slate-500">RANGE:</span>
+          <span className="text-slate-500">{t('ZASIĘG:', 'RANGE:')}</span>
           <span className="text-cyan-300 font-bold">850 M</span>
         </div>
         <div className="flex items-center gap-1">
           {divingCount > 0 ? (
             <span className="flex items-center gap-1 text-red-400 font-black animate-pulse">
-              <ShieldAlert size={10} /> {divingCount} DIVING!
+              <ShieldAlert size={10} /> {t(`NURKUJĄCY: ${divingCount}!`, `${divingCount} DIVING!`)}
             </span>
           ) : (
-            <span className="text-emerald-400 font-bold">PERIMETER CLEAR</span>
+            <span className="text-emerald-400 font-bold">{t('OBSZAR CZYSTY', 'PERIMETER CLEAR')}</span>
           )}
         </div>
       </div>

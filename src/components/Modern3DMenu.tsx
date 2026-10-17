@@ -17,6 +17,7 @@ import { ManualTab } from './menu/ManualTab';
 import { CinematicNavBar } from './menu/CinematicNavBar';
 import { MenuTelemetryFooter } from './menu/MenuTelemetryFooter';
 import { WarpOverlay } from './menu/WarpOverlay';
+import { useLocale } from '../config/content/locales/LocaleProvider';
 
 interface Modern3DMenuProps {
   engine: GameEngine;
@@ -35,6 +36,7 @@ const nextDifficulty = (prev: DifficultyLevel) =>
     : DifficultyLevel.EASY;
 
 export const Modern3DMenu: React.FC<Modern3DMenuProps> = ({ engine, onLaunch, onStateUpdate }) => {
+  const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<MenuTab>('main');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(engine.difficultyLevel);
   const [selectedCoop, setSelectedCoop] = useState<boolean>(engine.twoPlayerMode);
@@ -134,7 +136,7 @@ export const Modern3DMenu: React.FC<Modern3DMenuProps> = ({ engine, onLaunch, on
       <div
         ref={scene.containerRef}
         className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing"
-        title="Click & Drag to Orbit 3D Starfighter • Scroll to Zoom"
+        title={t('Kliknij i przeciągnij, aby obrócić myśliwiec 3D • Przewiń, aby przybliżyć', 'Click & drag to orbit the 3D starfighter • Scroll to zoom')}
       />
 
       {isIntroActive && (

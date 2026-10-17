@@ -24,6 +24,7 @@ export class PowerUpApplicationService {
             player.weaponEnergy = MAX_WEAPON_ENERGY;
             player.isLaserActive = false;
             ctx.weaponAnnouncement = {
+                id: 'TRIPLE_SHOT',
                 title: '🔱 TRIPLE SHOT ENGAGED!',
                 subtitle: '3-Way Angled Fan Cannons Activated',
                 color: '#fbbf24',
@@ -39,6 +40,7 @@ export class PowerUpApplicationService {
             player.weaponMode = WeaponMode.LASER_BEAM;
             player.weaponEnergy = MAX_WEAPON_ENERGY;
             ctx.weaponAnnouncement = {
+                id: 'LASER_BEAM',
                 title: '⚡ HYPER LASER BEAM ENGAGED!',
                 subtitle: 'Piercing Coherent Laser Column Activated',
                 color: '#ff37a6',
@@ -55,6 +57,7 @@ export class PowerUpApplicationService {
             player.weaponEnergy = MAX_WEAPON_ENERGY;
             player.isLaserActive = false;
             ctx.weaponAnnouncement = {
+                id: 'PLASMA_SPREAD',
                 title: '🔮 PLASMA SPREAD ENGAGED!',
                 subtitle: '5-Way Heavy Disruption Bolts Activated',
                 color: '#c084fc',
@@ -69,6 +72,7 @@ export class PowerUpApplicationService {
             }
             player.shield = MAX_SHIELD;
             ctx.weaponAnnouncement = {
+                id: 'SHIELD_RESTORED',
                 title: '🛡️ MAXIMUM SHIELD RESTORED',
                 subtitle: 'Deflector System Overcharged to 100%',
                 color: '#38bdf8',
@@ -79,6 +83,7 @@ export class PowerUpApplicationService {
         } else if (powerUp.type === PowerUpType.EXTRA_LIFE) {
             player.lives += 1;
             ctx.weaponAnnouncement = {
+                id: 'EXTRA_LIFE',
                 title: '❤️ EXTRA PILOT LIFE ACQUIRED',
                 subtitle: 'Hull Backup Unit Online',
                 color: '#4ade80',
@@ -92,6 +97,8 @@ export class PowerUpApplicationService {
                 ctx.unlockAchievement('full_arsenal');
             }
             ctx.weaponAnnouncement = {
+                id: 'CANNON_LEVEL',
+                level: player.weaponLevel,
                 title: `⭐ CANNON LEVEL ${player.weaponLevel}`,
                 subtitle: 'Primary Firepower Tier Upgraded',
                 color: '#22d3ee',

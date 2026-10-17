@@ -9,6 +9,7 @@ import {
   ChevronsDown,
   Activity,
 } from 'lucide-react';
+import { useLocale } from '../../../config/content/locales/LocaleProvider';
 
 interface SpaceCombatLockOnHUDProps {
   targets: ProjectedTarget[];
@@ -21,6 +22,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
   primaryTarget,
   audio,
 }) => {
+  const { t } = useLocale();
   const { lockProgress, lockState } = useTargetLock(
     primaryTarget?.id ?? null,
     Boolean(primaryTarget?.inView),
@@ -37,6 +39,11 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
       }
     : { x: 0, y: 0 };
 
+  const lockStateLabels: Record<typeof lockState, string> = {
+    SEARCHING: t('SZUKANIE', 'SEARCHING'),
+    ACQUIRING: t('NAMIERZANIE', 'ACQUIRING'),
+    LOCKED: t('ZABLOKOWANY', 'LOCKED'),
+  };
   const isLocked = lockState === 'LOCKED';
   const lockPercent = Math.round(lockProgress * 100);
 
@@ -62,7 +69,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
       {primaryTarget && primaryTarget.isDiving && primaryTarget.distanceMeters < 240 && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-xl bg-red-950/90 border border-red-500 text-red-300 font-bold text-xs tracking-wider flex items-center gap-2 shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-pulse">
           <AlertOctagon size={16} className="text-red-400 animate-spin" style={{ animationDuration: '3s' }} />
-          <span>⚠️ PROXIMITY ALERT: HOSTILE DIVE COLLISION COURSE [{primaryTarget.distanceMeters}M]</span>
+          <span>⚠️ {t(`ALARM ZBLIŻENIOWY: WROGI NURKUJE NA KURSIE KOLIZYJNYM [${primaryTarget.distanceMeters}M]`, `PROXIMITY ALERT: HOSTILE DIVE COLLISION COURSE [${primaryTarget.distanceMeters}M]`)}</span>
         </div>
       )}
 
@@ -162,7 +169,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 </div>
                 <span className="absolute -top-3.5 whitespace-nowrap text-[8px] font-black tracking-widest text-amber-300 bg-slate-950/80 px-1 rounded border border-amber-500/40">
-                  LEAD AIM
+                  {t('WYPRZEDZENIE', 'LEAD AIM')}
                 </span>
               </div>
             )}
@@ -171,20 +178,20 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
             <div className="absolute left-24 -top-2 flex flex-col items-start gap-0.5 whitespace-nowrap bg-slate-950/85 backdrop-blur-md px-2 py-1 rounded-md border border-cyan-500/40 shadow-lg text-[10px]">
               <div className="flex items-center gap-1.5 font-black">
                 <span className={primaryTarget.type === EnemyType.ELITE ? 'text-fuchsia-300' : 'text-cyan-300'}>
-                  {primaryTarget.type === EnemyType.ELITE ? 'ELITE STRIKER' : 'RAIDER DRONE'}
+                  {primaryTarget.type === EnemyType.ELITE ? t('ELITARNY NAPASTNIK', 'ELITE STRIKER') : t('DRON RABUNKOWY', 'RAIDER DRONE')}
                 </span>
                 <span
                   className={`px-1 py-0.2 rounded text-[8px] font-extrabold ${
                     isLocked ? 'bg-red-500 text-white animate-pulse' : 'bg-cyan-900/60 text-cyan-300'
                   }`}
                 >
-                  {isLocked ? 'LOCKED' : `${lockPercent}%`}
+                  {isLocked ? t('ZABLOKOWANY', 'LOCKED') : `${lockPercent}%`}
                 </span>
               </div>
 
               {/* Real-time Distance Readout */}
               <div className="flex items-center gap-2 text-slate-300">
-                <span className="text-slate-400">RANGE:</span>
+                <span className="text-slate-400">{t('ZASIĘG:', 'RANGE:')}</span>
                 <span className="font-bold text-amber-300">{primaryTarget.distanceMeters} M</span>
                 <span className="text-slate-500">|</span>
                 <span className="text-xs text-red-400 flex items-center">
@@ -196,7 +203,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
               {isLocked && (
                 <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 pt-0.5 border-t border-slate-800 w-full">
                   <Zap size={10} className="text-amber-400" />
-                  <span>FIRE SOLUTION OPTIMAL</span>
+                  <span>{t('ROZWIĄZANIE STRZELNICZE OPTYMALNE', 'FIRE SOLUTION OPTIMAL')}</span>
                 </div>
               )}
             </div>
@@ -209,7 +216,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
         {/* Panel Header */}
         <div className="flex items-center justify-between border-b border-cyan-500/30 pb-1.5 text-[10px]">
           <span className="flex items-center gap-1.5 font-bold tracking-wider text-cyan-300">
-            <Target size={13} className="text-cyan-400" /> TARGET TELEMETRY
+            <Target size={13} className="text-cyan-400" /> {t('TELEMETRIA CELU', 'TARGET TELEMETRY')}
           </span>
           <span
             className={`font-black px-1.5 py-0.5 rounded text-[9px] ${
@@ -220,7 +227,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
                 : 'text-slate-500'
             }`}
           >
-            {lockState}
+            {lockStateLabels[lockState]}
           </span>
         </div>
 
@@ -229,7 +236,7 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
             {/* Target Class & Threat */}
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-bold text-white">
-                {primaryTarget.type === EnemyType.ELITE ? 'TITAN INTERCEPTOR' : 'SWARM SCOUT'}
+                {primaryTarget.type === EnemyType.ELITE ? t('PRZECHWYTYWACZ TYTAN', 'TITAN INTERCEPTOR') : t('ZWIADOWCA ROJU', 'SWARM SCOUT')}
               </span>
               <span
                 className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
@@ -238,16 +245,16 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
                     : 'bg-slate-900 text-slate-300'
                 }`}
               >
-                {primaryTarget.isDiving ? 'DIVING ATTACK' : 'CRUISING'}
+                {primaryTarget.isDiving ? t('ATAK NURKOWY', 'DIVING ATTACK') : t('LOT MARSZOWY', 'CRUISING')}
               </span>
             </div>
 
             {/* Real-time Distance Meter */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-400">TARGET RANGE:</span>
+                <span className="text-slate-400">{t('ODLEGŁOŚĆ DO CELU:', 'TARGET RANGE:')}</span>
                 <span className="font-black text-amber-300 text-xs">
-                  {primaryTarget.distanceMeters} METERS
+                  {t(`${primaryTarget.distanceMeters} METRÓW`, `${primaryTarget.distanceMeters} METERS`)}
                 </span>
               </div>
               {/* Distance Range Meter Bar */}
@@ -267,14 +274,14 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
               </div>
               <div className="flex justify-between text-[8px] text-slate-500">
                 <span>0M</span>
-                <span>300M (CLOSE)</span>
+                <span>{t('300M (BLISKO)', '300M (CLOSE)')}</span>
                 <span>900M</span>
               </div>
             </div>
 
             {/* Relative Closing Velocity */}
             <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800">
-              <span className="text-slate-400">CLOSING SPEED:</span>
+              <span className="text-slate-400">{t('PRĘDKOŚĆ ZBLIŻANIA:', 'CLOSING SPEED:')}</span>
               <span className="font-bold text-rose-300 flex items-center gap-1">
                 <Activity size={10} className="text-rose-400" />
                 {primaryTarget.relativeVelocity} M/S
@@ -284,13 +291,13 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
             {/* Target Lock Progress Bar */}
             <div className="flex flex-col gap-1 pt-1 border-t border-slate-800">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-400">FIRE SOLUTION:</span>
+                <span className="text-slate-400">{t('ROZWIĄZANIE STRZELNICZE:', 'FIRE SOLUTION:')}</span>
                 <span
                   className={`font-bold ${
                     isLocked ? 'text-emerald-400 animate-pulse' : 'text-cyan-400'
                   }`}
                 >
-                  {isLocked ? 'LOCK ACQUIRED' : `${lockPercent}% ENGAGED`}
+                  {isLocked ? t('CEL NAMIERZONY', 'LOCK ACQUIRED') : t(`${lockPercent}% NAMIERZANIA`, `${lockPercent}% ENGAGED`)}
                 </span>
               </div>
               <div className="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden border border-cyan-500/20">
@@ -308,8 +315,8 @@ export const SpaceCombatLockOnHUD: React.FC<SpaceCombatLockOnHUDProps> = ({
         ) : (
           <div className="py-4 flex flex-col items-center justify-center text-center text-slate-500 gap-1.5">
             <Target size={20} className="text-slate-600 animate-pulse" />
-            <span className="text-[10px] tracking-wider uppercase">RADAR SWEEP ACTIVE</span>
-            <span className="text-[8px] text-slate-600">Align nose with hostile craft</span>
+            <span className="text-[10px] tracking-wider uppercase">{t('SKANOWANIE RADAREM AKTYWNE', 'RADAR SWEEP ACTIVE')}</span>
+            <span className="text-[8px] text-slate-600">{t('Skieruj dziób na wrogi statek', 'Align nose with hostile craft')}</span>
           </div>
         )}
       </div>

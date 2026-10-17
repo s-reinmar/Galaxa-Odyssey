@@ -4,6 +4,7 @@ import { GameEngine } from '../../game/GameEngine';
 import { DifficultyLevel } from '../../types/game';
 import { soundEngine } from '../../game/audio/soundEngine';
 import { MenuTab } from './menuTypes';
+import { useLocale } from '../../config/content/locales/LocaleProvider';
 
 interface MainMenuTabProps {
   engine: GameEngine;
@@ -18,6 +19,9 @@ interface MainMenuTabProps {
   onOpenAchievements: () => void;
 }
 
+const difficultyName = (diff: DifficultyLevel, t: (pl: string, en: string) => string) =>
+  diff === DifficultyLevel.EASY ? t('ŁATWY', 'EASY') : diff === DifficultyLevel.NORMAL ? t('NORMALNY', 'NORMAL') : t('TRUDNY', 'HARD');
+
 export const MainMenuTab: React.FC<MainMenuTabProps> = ({
   engine,
   selectedCoop,
@@ -30,6 +34,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
   onOpenTab,
   onOpenAchievements,
 }) => {
+  const { t } = useLocale();
   const hasSave = engine.hasSavedGame();
   const openTab = (tab: MenuTab) => {
     soundEngine.playUiClick();
@@ -40,13 +45,16 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
     <div className="space-y-2.5 animate-in fade-in slide-in-from-left-4 duration-300">
       <div className="mb-3">
         <div className="text-[11px] font-mono uppercase tracking-[0.25em] text-cyan-400 font-bold mb-1 flex items-center gap-2">
-          <span>TACTICAL FLIGHT DECK</span>
+          <span>{t('TAKTYCZNY POKŁAD LOTNICZY', 'TACTICAL FLIGHT DECK')}</span>
           <span className="text-slate-500">•</span>
-          <span className="text-[10px] text-emerald-400">ONLINE</span>
+          <span className="text-[10px] text-emerald-400">{t('ONLINE', 'ONLINE')}</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-white font-mono tracking-tight">GALAXA ODYSSEY</h1>
         <p className="text-xs text-slate-300 mt-1 max-w-[360px] leading-relaxed">
-          Next-generation 21st-century starfighter orbital command & alien frontline defense simulator.
+          {t(
+            'Symulator orbitalnego dowodzenia myśliwcem XXI wieku nowej generacji i obrony frontu przed obcymi.',
+            'Next-generation 21st-century starfighter orbital command & alien frontline defense simulator.'
+          )}
         </p>
       </div>
 
@@ -63,12 +71,12 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
             </div>
             <div>
               <div className="text-xs sm:text-sm font-bold text-white font-mono flex items-center gap-2">
-                RESUME MISSION
+                {t('WZNÓW MISJĘ', 'RESUME MISSION')}
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-300 font-mono font-bold">
-                  WAVE {engine.wave + 1}
+                  {t('FALA', 'WAVE')} {engine.wave + 1}
                 </span>
               </div>
-              <div className="text-[11px] text-emerald-300/80">Continue from saved tactical state</div>
+              <div className="text-[11px] text-emerald-300/80">{t('Kontynuuj od zapisanego stanu taktycznego', 'Continue from saved tactical state')}</div>
             </div>
           </div>
           <ChevronRight size={18} className="text-emerald-400 group-hover:translate-x-1 transition-transform" />
@@ -88,13 +96,14 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           </div>
           <div>
             <div className="text-sm sm:text-base font-black text-slate-950 font-mono tracking-wider flex items-center gap-2">
-              ROZPOCZNIJ MISJĘ
+              {t('ROZPOCZNIJ MISJĘ', 'START MISSION')}
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/20 text-slate-950 font-bold border border-slate-950/20">
-                [SPACJA / ENTER]
+                {t('[SPACJA / ENTER]', '[SPACE / ENTER]')}
               </span>
             </div>
             <div className="text-[11px] text-slate-900 font-semibold">
-              {selectedCoop ? 'Tryb 2P Co-op Wingman' : 'Tryb 1P Solo'} • Trudność: {selectedDifficulty}
+              {selectedCoop ? t('Tryb 2P Co-op Wingman', '2P Co-op Wingman mode') : t('Tryb 1P Solo', '1P Solo mode')} •{' '}
+              {t('Trudność', 'Difficulty')}: {difficultyName(selectedDifficulty, t)}
             </div>
           </div>
         </div>
@@ -111,9 +120,9 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           onMouseEnter={() => soundEngine.playUiHover()}
           className="px-3 py-2 bg-slate-900/90 border border-slate-700 hover:border-cyan-400/80 rounded-xl flex items-center justify-between text-xs font-mono transition cursor-pointer"
         >
-          <span className="text-slate-400 text-[10px]">FORMACJA:</span>
+          <span className="text-slate-400 text-[10px]">{t('FORMACJA:', 'FORMATION:')}</span>
           <span className="font-bold text-cyan-300 flex items-center gap-1">
-            <Users size={12} /> {selectedCoop ? '2P CO-OP' : '1P SOLO'}
+            <Users size={12} /> {selectedCoop ? t('2P CO-OP', '2P CO-OP') : t('1P SOLO', '1P SOLO')}
           </span>
         </button>
         <button
@@ -125,8 +134,8 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           onMouseEnter={() => soundEngine.playUiHover()}
           className="px-3 py-2 bg-slate-900/90 border border-slate-700 hover:border-amber-400/80 rounded-xl flex items-center justify-between text-xs font-mono transition cursor-pointer"
         >
-          <span className="text-slate-400 text-[10px]">TRUDNOŚĆ:</span>
-          <span className="font-bold text-amber-300">{selectedDifficulty}</span>
+          <span className="text-slate-400 text-[10px]">{t('TRUDNOŚĆ:', 'DIFFICULTY:')}</span>
+          <span className="font-bold text-amber-300">{difficultyName(selectedDifficulty, t)}</span>
         </button>
       </div>
 
@@ -141,8 +150,8 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
             <Shield size={16} />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-200 font-mono">SHIP LOADOUT & HANGAR</div>
-            <div className="text-[10px] text-slate-400">Weapon tiers, ship skins & shield upgrades</div>
+            <div className="text-xs font-bold text-slate-200 font-mono">{t('WYPOSAŻENIE STATKU I HANGAR', 'SHIP LOADOUT & HANGAR')}</div>
+            <div className="text-[10px] text-slate-400">{t('Poziomy broni, malowania statku i ulepszenia tarcz', 'Weapon tiers, ship skins & shield upgrades')}</div>
           </div>
         </div>
         <ChevronRight size={16} className="text-purple-400 group-hover:translate-x-1 transition-transform" />
@@ -163,12 +172,12 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           </div>
           <div>
             <div className="text-xs font-bold text-slate-200 font-mono flex items-center gap-2">
-              BADGES & ACHIEVEMENTS
+              {t('ODZNAKI I OSIĄGNIĘCIA', 'BADGES & ACHIEVEMENTS')}
               <span className="text-[10px] text-amber-300 font-mono font-bold">
                 ({engine.getUnlockedCount()}/{engine.getTotalCount()})
               </span>
             </div>
-            <div className="text-[10px] text-slate-400">Inspect 31 unlocked medals, flight badges & honors</div>
+            <div className="text-[10px] text-slate-400">{t('Przeglądaj 31 odblokowanych medali, odznak lotniczych i wyróżnień', 'Inspect 31 unlocked medals, flight badges & honors')}</div>
           </div>
         </div>
         <ChevronRight size={16} className="text-amber-400 group-hover:translate-x-1 transition-transform" />
@@ -182,7 +191,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           className="px-3 py-2 bg-slate-950/85 hover:bg-slate-900 border border-slate-800 rounded-xl text-left transition text-xs font-mono font-semibold text-slate-300 flex items-center gap-2 cursor-pointer"
         >
           <Settings size={14} className="text-cyan-400 shrink-0" />
-          <span>DIAGNOSTICS</span>
+          <span>{t('DIAGNOSTYKA', 'DIAGNOSTICS')}</span>
         </button>
         <button
           type="button"
@@ -191,7 +200,7 @@ export const MainMenuTab: React.FC<MainMenuTabProps> = ({
           className="px-3 py-2 bg-slate-950/85 hover:bg-slate-900 border border-slate-800 rounded-xl text-left transition text-xs font-mono font-semibold text-slate-300 flex items-center gap-2 cursor-pointer"
         >
           <BookOpen size={14} className="text-pink-400 shrink-0" />
-          <span>FLIGHT MANUAL</span>
+          <span>{t('PODRĘCZNIK LOTU', 'FLIGHT MANUAL')}</span>
         </button>
       </div>
     </div>

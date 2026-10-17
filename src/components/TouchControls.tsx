@@ -2,6 +2,8 @@ import React from 'react';
 import { WeaponMode, WEAPON_MODE_CONFIGS } from '../types/game';
 import type { VirtualButtonAction } from '../types/input';
 import { TouchActionButton } from './touch-controls/TouchActionButton';
+import { useLocale } from '../config/content/locales/LocaleProvider';
+import { WEAPON_LABELS } from '../config/gameplay/balance';
 
 interface TouchControlsProps {
     isPlaying: boolean;
@@ -16,12 +18,13 @@ interface TouchControlsProps {
 const MOVEMENT_BUTTONS: {
     action: VirtualButtonAction;
     label: string;
-    title: string;
+    titlePl: string;
+    titleEn: string;
 }[] = [
-    { action: 'left', label: '◀', title: 'Lewo [A / ←]' },
-    { action: 'right', label: '▶', title: 'Prawo [D / →]' },
-    { action: 'up', label: '▲', title: 'Do przodu [W / ↑]' },
-    { action: 'down', label: '▼', title: 'Do tyłu [S / ↓]' },
+    { action: 'left', label: '◀', titlePl: 'Lewo [A / ←]', titleEn: 'Left [A / ←]' },
+    { action: 'right', label: '▶', titlePl: 'Prawo [D / →]', titleEn: 'Right [D / →]' },
+    { action: 'up', label: '▲', titlePl: 'Do przodu [W / ↑]', titleEn: 'Forward [W / ↑]' },
+    { action: 'down', label: '▼', titlePl: 'Do tyłu [S / ↓]', titleEn: 'Back [S / ↓]' },
 ];
 
 const movementButtonClassName =
@@ -36,16 +39,17 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     onWeaponModeChange,
     onPause,
 }) => {
+    const { t } = useLocale();
     if (!isPlaying) return null;
 
     return (
         <div className="w-full max-w-[900px] mt-2 px-2 sm:px-3 py-2 flex flex-wrap items-center justify-between gap-2 select-none">
-            <div className="flex items-center gap-1.5 sm:gap-2" aria-label="Sterowanie ruchem">
-                {MOVEMENT_BUTTONS.map(({ action, label, title }) => (
+            <div className="flex items-center gap-1.5 sm:gap-2" aria-label={t('Sterowanie ruchem', 'Movement controls')}>
+                {MOVEMENT_BUTTONS.map(({ action, label, titlePl, titleEn }) => (
                     <TouchActionButton
                         key={action}
                         action={action}
-                        title={title}
+                        title={t(titlePl, titleEn)}
                         className={movementButtonClassName}
                         onActionChange={onActionChange}
                     >
@@ -74,7 +78,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                             {mode === WeaponMode.LASER_BEAM && '⚡ '}
                             {mode === WeaponMode.TRIPLE_SHOT && '🔱 '}
                             {mode === WeaponMode.PLASMA_SPREAD && '🔮 '}
-                            {config.label}
+                            {t(WEAPON_LABELS[mode].label.pl, WEAPON_LABELS[mode].label.en)}
                         </button>
                     );
                 })}
@@ -84,14 +88,14 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                     onClick={onPause}
                     className="px-3 py-1.5 bg-slate-900/80 border border-slate-700/80 rounded-lg text-slate-300 text-[11px] font-mono font-semibold tracking-wider hover:bg-slate-800 transition"
                 >
-                    PAUSE
+                    {t('PAUZA', 'PAUSE')}
                 </button>
             </div>
 
             <div className="flex items-center gap-3">
                 {isTwoPlayer && (
                     <div className="hidden sm:flex items-center gap-1">
-                        <span className="text-[11px] text-pink-400 font-mono">P2: A/D+F</span>
+                        <span className="text-[11px] text-pink-400 font-mono">{t('GRACZ 2: A/D+F', 'P2: A/D+F')}</span>
                     </div>
                 )}
                 <TouchActionButton
@@ -99,7 +103,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                     className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-cyan-600/80 to-blue-500/80 border-2 border-cyan-300 rounded-2xl active:scale-95 text-white font-black text-sm flex items-center justify-center shadow-[0_0_15px_rgba(55,245,255,0.4)] transition-transform touch-none"
                     onActionChange={onActionChange}
                 >
-                    FIRE
+                    {t('OGIEŃ', 'FIRE')}
                 </TouchActionButton>
             </div>
         </div>
